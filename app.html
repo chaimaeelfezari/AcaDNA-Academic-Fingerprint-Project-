@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AcaDNA — Empreinte Académique</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#05060f;
+  --bg2:#0a0c1a;
+  --bg3:#0f1229;
+  --purple:#7c6fee;
+  --purple2:#a89cf5;
+  --teal:#1de9b6;
+  --coral:#ff6b6b;
+  --amber:#ffd93d;
+  --text:#e8e9ff;
+  --muted:#7a7d9c;
+  --card:#111428;
+  --border:rgba(124,111,238,0.2);
+}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;overflow-x:hidden;min-height:100vh}
+
+/* CANVAS 3D */
+#canvas3d{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0.4}
+
+/* LAYOUT */
+.app{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+
+/* HERO */
+.hero{text-align:center;padding:4rem 0 3rem;animation:fadeUp 0.8s ease}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(124,111,238,0.12);border:1px solid rgba(124,111,238,0.3);border-radius:999px;padding:6px 16px;font-size:12px;color:var(--purple2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:1.5rem}
+.hero-badge span{width:7px;height:7px;background:var(--teal);border-radius:50%;animation:pulse 2s infinite}
+h1{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:700;line-height:1.05;letter-spacing:-0.03em;margin-bottom:1rem}
+h1 .gradient{background:linear-gradient(135deg,var(--purple2) 0%,var(--teal) 60%,var(--amber) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:1.05rem;color:var(--muted);max-width:520px;margin:0 auto 2.5rem;line-height:1.7}
+.dna-strand{display:flex;justify-content:center;gap:6px;margin-bottom:2.5rem}
+.dna-strand span{width:8px;height:8px;border-radius:50%;animation:dnaAnim 1.5s ease-in-out infinite}
+.dna-strand span:nth-child(1){background:var(--purple);animation-delay:0s}
+.dna-strand span:nth-child(2){background:var(--teal);animation-delay:0.15s}
+.dna-strand span:nth-child(3){background:var(--purple2);animation-delay:0.3s}
+.dna-strand span:nth-child(4){background:var(--coral);animation-delay:0.45s}
+.dna-strand span:nth-child(5){background:var(--amber);animation-delay:0.6s}
+.dna-strand span:nth-child(6){background:var(--teal);animation-delay:0.75s}
+.dna-strand span:nth-child(7){background:var(--purple2);animation-delay:0.9s}
+
+/* STATS ROW */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:3rem}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.2rem;text-align:center;transition:transform 0.3s,border-color 0.3s}
+.stat:hover{transform:translateY(-4px);border-color:rgba(124,111,238,0.5)}
+.stat-num{font-family:'Space Mono',monospace;font-size:1.8rem;font-weight:700;color:var(--purple2)}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:4px}
+
+/* MODULES */
+.modules{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:3rem}
+.module-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:1.5rem;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden}
+.module-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:20px 20px 0 0;opacity:0;transition:opacity 0.3s}
+.module-card:nth-child(1)::before{background:var(--purple)}
+.module-card:nth-child(2)::before{background:var(--teal)}
+.module-card:nth-child(3)::before{background:var(--coral)}
+.module-card:nth-child(4)::before{background:var(--amber)}
+.module-card:hover::before{opacity:1}
+.module-card:hover{transform:translateY(-6px);border-color:rgba(168,156,245,0.4);box-shadow:0 20px 60px rgba(0,0,0,0.4)}
+.module-icon{font-size:2rem;margin-bottom:0.8rem}
+.module-tag{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;padding:3px 10px;border-radius:999px;display:inline-block;margin-bottom:0.8rem}
+.tag-purple{background:rgba(124,111,238,0.15);color:var(--purple2);border:1px solid rgba(124,111,238,0.3)}
+.tag-teal{background:rgba(29,233,182,0.1);color:var(--teal);border:1px solid rgba(29,233,182,0.25)}
+.tag-coral{background:rgba(255,107,107,0.1);color:var(--coral);border:1px solid rgba(255,107,107,0.25)}
+.tag-amber{background:rgba(255,217,61,0.1);color:var(--amber);border:1px solid rgba(255,217,61,0.25)}
+.module-title{font-size:1rem;font-weight:600;margin-bottom:0.4rem}
+.module-desc{font-size:13px;color:var(--muted);line-height:1.5}
+.module-tech{display:flex;flex-wrap:wrap;gap:6px;margin-top:1rem}
+.tech-pill{font-family:'Space Mono',monospace;font-size:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:3px 8px;color:var(--muted)}
+
+/* FORM */
+.form-section{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:2.5rem;margin-bottom:2rem;animation:fadeUp 0.6s ease}
+.form-header{text-align:center;margin-bottom:2rem}
+.form-header h2{font-size:1.6rem;font-weight:600;margin-bottom:0.5rem}
+.form-header p{color:var(--muted);font-size:14px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+.form-group{display:flex;flex-direction:column;gap:8px}
+.form-group.full{grid-column:1/-1}
+label{font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted)}
+select,input[type=range]{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:14px;padding:10px 14px;outline:none;transition:border-color 0.2s;appearance:none;-webkit-appearance:none}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a7d9c' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;cursor:pointer}
+select:focus,select:hover{border-color:var(--purple)}
+select option{background:#1a1c35}
+input[type=range]{padding:8px 0;cursor:pointer;accent-color:var(--purple)}
+.range-row{display:flex;align-items:center;gap:10px}
+.range-row input{flex:1}
+.range-val{font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:var(--purple2);min-width:24px;text-align:right}
+.btn-analyze{width:100%;margin-top:1.5rem;background:linear-gradient(135deg,var(--purple) 0%,#5b4fcf 100%);color:#fff;border:none;border-radius:12px;padding:1rem 2rem;font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;letter-spacing:0.02em}
+.btn-analyze:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(124,111,238,0.4)}
+.btn-analyze:active{transform:scale(0.98)}
+
+/* RESULT */
+.result-section{display:none;animation:fadeUp 0.7s ease}
+.result-section.show{display:block}
+.archetype-card{background:var(--card);border:1px solid rgba(124,111,238,0.4);border-radius:24px;padding:2.5rem;text-align:center;margin-bottom:1.5rem;position:relative;overflow:hidden}
+.archetype-card::after{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(124,111,238,0.15) 0%,transparent 70%);pointer-events:none}
+.archetype-emoji{font-size:4rem;margin-bottom:1rem;display:block;animation:floatEmoji 3s ease-in-out infinite}
+.archetype-name{font-size:1.8rem;font-weight:700;margin-bottom:0.5rem}
+.archetype-desc{color:var(--muted);font-size:15px;line-height:1.6;max-width:480px;margin:0 auto 1.5rem}
+.orientation-badge{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:999px;font-size:14px;font-weight:500}
+.badge-ok{background:rgba(29,233,182,0.1);border:1px solid rgba(29,233,182,0.3);color:var(--teal)}
+.badge-risk{background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:var(--coral)}
+
+/* PROBA BARS */
+.proba-section{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:1.8rem;margin-bottom:1.5rem}
+.proba-section h3{font-size:14px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:1.2rem}
+.proba-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.proba-label{font-size:13px;min-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proba-bar-bg{flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden}
+.proba-bar-fill{height:100%;border-radius:99px;transition:width 1.2s cubic-bezier(0.4,0,0.2,1)}
+.proba-pct{font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);min-width:36px;text-align:right}
+
+/* RECO */
+.reco-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:2rem}
+.reco-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.2rem;text-align:center}
+.reco-icon{font-size:1.5rem;margin-bottom:0.5rem}
+.reco-text{font-size:12px;color:var(--muted);line-height:1.5}
+
+.btn-reset{background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--muted);padding:0.7rem 1.5rem;font-family:'Space Grotesk',sans-serif;font-size:14px;cursor:pointer;transition:all 0.2s;display:block;margin:0 auto}
+.btn-reset:hover{border-color:var(--purple);color:var(--text)}
+
+/* FOOTER */
+.footer{text-align:center;padding:2rem 0;border-top:1px solid var(--border);margin-top:3rem}
+.footer p{font-size:12px;color:var(--muted)}
+.footer span{color:var(--purple2)}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+@keyframes dnaAnim{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.3)}}
+@keyframes floatEmoji{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+@media(max-width:600px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .modules{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .reco-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<canvas id="canvas3d"></canvas>
+
+<div class="app">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge"><span></span> Projet ML Master — AcaDNA</div>
+    <h1>Lis ton<br><span class="gradient">empreinte académique</span></h1>
+    <div class="dna-strand">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <p class="hero-sub">Un système ML end-to-end qui détecte ton archétype, prédit ta procrastination, ton masquage académique, et ton adéquation avec ta filière.</p>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat"><div class="stat-num">300</div><div class="stat-label">Étudiants analysés</div></div>
+    <div class="stat"><div class="stat-num">87%</div><div class="stat-label">Précision KNN</div></div>
+    <div class="stat"><div class="stat-num">5</div><div class="stat-label">Archétypes</div></div>
+    <div class="stat"><div class="stat-num">4</div><div class="stat-label">Modules ML</div></div>
+  </div>
+
+  
+  <!-- FORM -->
+  <div class="form-section" id="formSection">
+    <div class="form-header">
+      <h2>🧬 Analyse ton profil</h2>
+      <p>Réponds aux questions — le modèle lit ton empreinte en temps réel</p>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Performance académique (1–5)</label>
+        <div class="range-row">
+          <input type="range" min="1" max="5" value="3" id="q1" oninput="document.getElementById('q1v').textContent=this.value">
+          <span class="range-val" id="q1v">3</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Satisfaction filière (1–5)</label>
+        <div class="range-row">
+          <input type="range" min="1" max="5" value="3" id="q11" oninput="document.getElementById('q11v').textContent=this.value">
+          <span class="range-val" id="q11v">3</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Tu caches ton stress ?</label>
+        <select id="q2">
+          <option value="0">Jamais</option>
+          <option value="1">Rarement</option>
+          <option value="2" selected>Parfois</option>
+          <option value="3">Souvent</option>
+          <option value="4">Toujours</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tu fais semblant d'aller bien ?</label>
+        <select id="q14">
+          <option value="0">Jamais</option>
+          <option value="1">Rarement</option>
+          <option value="2" selected>Parfois</option>
+          <option value="3">Souvent</option>
+          <option value="4">Toujours</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tu repousses les tâches ?</label>
+        <select id="q27">
+          <option value="0">Jamais</option>
+          <option value="1">Rarement</option>
+          <option value="2" selected>Parfois</option>
+          <option value="3">Souvent</option>
+          <option value="4">Toujours</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Envisagé changer de filière ?</label>
+        <select id="q36">
+          <option value="0">Non</option>
+          <option value="1">Pas sûr·e</option>
+          <option value="2">Oui</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tu agis différemment de ce que tu ressens ?</label>
+        <select id="q17">
+          <option value="0">Jamais</option>
+          <option value="1">Rarement</option>
+          <option value="2" selected>Parfois</option>
+          <option value="3">Souvent</option>
+          <option value="4">Toujours</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Relation avec les deadlines</label>
+        <select id="q28">
+          <option value="0">Je planifie longtemps à l'avance</option>
+          <option value="1">Je commence tôt mais je procrastine</option>
+          <option value="2" selected>Je les rencontre mais à la dernière minute</option>
+          <option value="3">La pression me motive</option>
+          <option value="4">Je les rate souvent</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-analyze" onclick="analyzeProfile()">🔍 Analyser mon empreinte académique</button>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-section" id="resultSection">
+    <div class="archetype-card">
+      <span class="archetype-emoji" id="resEmoji">🌙</span>
+      <div class="archetype-name" id="resName">—</div>
+      <div class="archetype-desc" id="resDesc">—</div>
+      <div class="orientation-badge" id="resBadge"></div>
+    </div>
+
+    <div class="proba-section">
+      <h3>Confiance du modèle par archétype</h3>
+      <div id="probaRows"></div>
+    </div>
+
+    <div class="reco-grid" id="recoGrid"></div>
+
+    <button class="btn-reset" onclick="resetForm()">↩ Analyser un autre profil</button>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <p>AcaDNA — <span>L'empreinte digitale académique</span> · Projet ML Master · K-Means · XGBoost · SHAP · KNN</p>
+  </div>
+
+</div>
+
+<script>
+// ── 3D PARTICLE CANVAS ──────────────────────────────────
+const canvas=document.getElementById('canvas3d');
+const ctx=canvas.getContext('2d');
+let particles=[];
+let W,H;
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+resize();
+window.addEventListener('resize',resize);
+function initParticles(){
+  particles=[];
+  const colors=['#7c6fee','#1de9b6','#ff6b6b','#ffd93d','#a89cf5'];
+  for(let i=0;i<80;i++){
+    particles.push({
+      x:Math.random()*W,y:Math.random()*H,
+      vx:(Math.random()-0.5)*0.4,vy:(Math.random()-0.5)*0.4,
+      r:Math.random()*2.5+0.5,
+      color:colors[Math.floor(Math.random()*colors.length)],
+      alpha:Math.random()*0.6+0.2
+    });
+  }
+}
+initParticles();
+function drawParticles(){
+  ctx.clearRect(0,0,W,H);
+  particles.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0)p.x=W;if(p.x>W)p.x=0;
+    if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=p.color;ctx.globalAlpha=p.alpha;ctx.fill();
+  });
+  particles.forEach((a,i)=>{
+    for(let j=i+1;j<particles.length;j++){
+      const b=particles[j];
+      const d=Math.hypot(a.x-b.x,a.y-b.y);
+      if(d<120){
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+        ctx.strokeStyle=a.color;ctx.globalAlpha=(1-d/120)*0.12;ctx.lineWidth=0.5;ctx.stroke();
+      }
+    }
+  });
+  ctx.globalAlpha=1;
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+// ── ARCHETYPES DATA ──────────────────────────────────────
+const ARCHETYPES=[
+  {emoji:'🌙',name:'Le Solitaire Nocturne',desc:'Tu travailles seul, tard dans la nuit, et tu gères. Ton autonomie est une force — mais renforce ton réseau.',color:'#7c6fee',
+   recos:['Rejoins un groupe d\'étude', 'Planifie tes sessions', 'Utilise des outils collaboratifs']},
+  {emoji:'😊',name:'Le Façadier Passionné',desc:'Passionné par tes études, mais tu caches ce que tu ressens vraiment. Parler à quelqu\'un de confiance peut tout changer.',color:'#a89cf5',
+   recos:['Parle à un mentor', 'Journal de bord émotionnel', 'Rejoins une communauté']},
+  {emoji:'🎯',name:'L\'Organisé Serein',desc:'Tu planifies, tu anticipes, tu exécutes. Tu es sur la bonne voie — continue à optimiser tes méthodes.',color:'#1de9b6',
+   recos:['Explore des techniques avancées', 'Mentor tes pairs', 'Vise des projets ambitieux']},
+  {emoji:'⚡',name:'Le Procrastinateur Sous Pression',desc:'Tu attends le dernier moment — et ça marche, mais c\'est épuisant. Découpe tes tâches en micro-étapes.',color:'#ff6b6b',
+   recos:['Technique Pomodoro', 'Décompose les tâches', 'Élimine les distractions']},
+  {emoji:'🎭',name:'Le Masqué Épuisé',desc:'Tu souris en classe mais tu portes beaucoup seul. Accorde-toi du repos sans culpabilité.',color:'#ffd93d',
+   recos:['Pratique l\'auto-compassion', 'Cherche du soutien', 'Limite les engagements']},
+];
+
+// ── LOGIC ────────────────────────────────────────────────
+function scoreProfile(){
+  const q1=parseInt(document.getElementById('q1').value);
+  const q11=parseInt(document.getElementById('q11').value);
+  const q2=parseInt(document.getElementById('q2').value);
+  const q14=parseInt(document.getElementById('q14').value);
+  const q17=parseInt(document.getElementById('q17').value);
+  const q27=parseInt(document.getElementById('q27').value);
+  const q28=parseInt(document.getElementById('q28').value);
+  const q36=parseInt(document.getElementById('q36').value);
+
+  const masquage=(q2+q14+q17)/12;
+  const procra=(q27+q28)/8;
+  const satisfaction=q11/5;
+  const perf=q1/5;
+  const oriente=q36/2;
+
+  let scores=[0,0,0,0,0];
+  // C0 Solitaire nocturne: perf ok, masquage moyen, procra faible
+  scores[0]=perf*0.4+(1-masquage)*0.3+(1-procra)*0.3;
+  // C1 Façadier passionné: satisfaction haute, masquage haut
+  scores[1]=satisfaction*0.4+masquage*0.4+perf*0.2;
+  // C2 Organisé serein: perf haute, procra faible, satisfaction haute, peu masquage
+  scores[2]=perf*0.3+(1-procra)*0.3+satisfaction*0.3+(1-masquage)*0.1;
+  // C3 Procrastinateur: procra haute, oriente haut
+  scores[3]=procra*0.5+oriente*0.3+(1-perf)*0.2;
+  // C4 Masqué épuisé: masquage très haut, satisfaction faible
+  scores[4]=masquage*0.5+(1-satisfaction)*0.3+(1-perf)*0.2;
+
+  const total=scores.reduce((a,b)=>a+b,0);
+  const proba=scores.map(s=>s/total);
+  const cluster=proba.indexOf(Math.max(...proba));
+  const malOriente=(q36>=1||q11<=2)?1:0;
+  return{cluster,proba,malOriente};
+}
+
+function analyzeProfile(){
+  const{cluster,proba,malOriente}=scoreProfile();
+  const arch=ARCHETYPES[cluster];
+
+  document.getElementById('resEmoji').textContent=arch.emoji;
+  document.getElementById('resName').textContent=arch.name;
+  document.getElementById('resDesc').textContent=arch.desc;
+
+  const badge=document.getElementById('resBadge');
+  if(malOriente===1){
+    badge.className='orientation-badge badge-risk';
+    badge.textContent='⚠️ Possible inadéquation avec ta filière';
+  } else {
+    badge.className='orientation-badge badge-ok';
+    badge.textContent='✅ Bien aligné avec ta filière';
+  }
+
+  const rows=document.getElementById('probaRows');
+  rows.innerHTML='';
+  const colors=['#7c6fee','#a89cf5','#1de9b6','#ff6b6b','#ffd93d'];
+  ARCHETYPES.forEach((a,i)=>{
+    const pct=Math.round(proba[i]*100);
+    rows.innerHTML+=`
+      <div class="proba-row">
+        <span class="proba-label">${a.emoji} ${a.name}</span>
+        <div class="proba-bar-bg"><div class="proba-bar-fill" style="width:0%;background:${colors[i]}" data-w="${pct}%"></div></div>
+        <span class="proba-pct">${pct}%</span>
+      </div>`;
+  });
+  setTimeout(()=>{
+    document.querySelectorAll('.proba-bar-fill').forEach(el=>{el.style.width=el.dataset.w});
+  },100);
+
+  const reco=document.getElementById('recoGrid');
+  reco.innerHTML=arch.recos.map(r=>`
+    <div class="reco-card">
+      <div class="reco-icon">💡</div>
+      <div class="reco-text">${r}</div>
+    </div>`).join('');
+
+  document.getElementById('formSection').style.display='none';
+  const res=document.getElementById('resultSection');
+  res.classList.add('show');
+  res.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function resetForm(){
+  document.getElementById('resultSection').classList.remove('show');
+  document.getElementById('formSection').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
