@@ -1,436 +1,2219 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AcaDNA — Empreinte Académique</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#05060f;
-  --bg2:#0a0c1a;
-  --bg3:#0f1229;
-  --purple:#7c6fee;
-  --purple2:#a89cf5;
-  --teal:#1de9b6;
-  --coral:#ff6b6b;
-  --amber:#ffd93d;
-  --text:#e8e9ff;
-  --muted:#7a7d9c;
-  --card:#111428;
-  --border:rgba(124,111,238,0.2);
-}
-body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;overflow-x:hidden;min-height:100vh}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AcaDNA · Academic Fingerprint</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Librairies pour le PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        /* ─── RESET & ROOT ─── */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-body: #f4f6fa;
+            --bg-white: #ffffff;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f8f9fc;
+            --border-light: #e8ecf2;
+            --border-focus: #c8d0dc;
+            --shadow-soft: 0 8px 40px rgba(0, 20, 40, 0.06);
+            --shadow-medium: 0 12px 48px rgba(0, 20, 40, 0.08);
+            --shadow-heavy: 0 20px 60px rgba(0, 20, 40, 0.10);
+            --accent: #2b6c9e;
+            --accent-light: #e8f0f8;
+            --accent-glow: rgba(43, 108, 158, 0.08);
+            --text-primary: #1a2634;
+            --text-secondary: #4a5a6e;
+            --text-tertiary: #8899ae;
+            --text-inverse: #ffffff;
+            --radius: 14px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --chatbot-bg: #f8f9fc;
+            --chatbot-user: #2b6c9e;
+            --chatbot-bot: #e8ecf2;
+            --nav-height: 64px;
+        }
 
-/* CANVAS 3D */
-#canvas3d{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0.4}
+        html { background: var(--bg-body); }
+        body {
+            background: var(--bg-body);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            padding-top: var(--nav-height);
+        }
 
-/* LAYOUT */
-.app{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+        /* ─── REEL BACKGROUND ─── */
+        .reel-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            background: var(--bg-body);
+        }
 
-/* HERO */
-.hero{text-align:center;padding:4rem 0 3rem;animation:fadeUp 0.8s ease}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(124,111,238,0.12);border:1px solid rgba(124,111,238,0.3);border-radius:999px;padding:6px 16px;font-size:12px;color:var(--purple2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:1.5rem}
-.hero-badge span{width:7px;height:7px;background:var(--teal);border-radius:50%;animation:pulse 2s infinite}
-h1{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:700;line-height:1.05;letter-spacing:-0.03em;margin-bottom:1rem}
-h1 .gradient{background:linear-gradient(135deg,var(--purple2) 0%,var(--teal) 60%,var(--amber) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hero-sub{font-size:1.05rem;color:var(--muted);max-width:520px;margin:0 auto 2.5rem;line-height:1.7}
-.dna-strand{display:flex;justify-content:center;gap:6px;margin-bottom:2.5rem}
-.dna-strand span{width:8px;height:8px;border-radius:50%;animation:dnaAnim 1.5s ease-in-out infinite}
-.dna-strand span:nth-child(1){background:var(--purple);animation-delay:0s}
-.dna-strand span:nth-child(2){background:var(--teal);animation-delay:0.15s}
-.dna-strand span:nth-child(3){background:var(--purple2);animation-delay:0.3s}
-.dna-strand span:nth-child(4){background:var(--coral);animation-delay:0.45s}
-.dna-strand span:nth-child(5){background:var(--amber);animation-delay:0.6s}
-.dna-strand span:nth-child(6){background:var(--teal);animation-delay:0.75s}
-.dna-strand span:nth-child(7){background:var(--purple2);animation-delay:0.9s}
+        .reel-track {
+            display: flex;
+            gap: 16px;
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            animation: scrollReels 50s linear infinite;
+            width: max-content;
+        }
 
-/* STATS ROW */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:3rem}
-.stat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.2rem;text-align:center;transition:transform 0.3s,border-color 0.3s}
-.stat:hover{transform:translateY(-4px);border-color:rgba(124,111,238,0.5)}
-.stat-num{font-family:'Space Mono',monospace;font-size:1.8rem;font-weight:700;color:var(--purple2)}
-.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:4px}
+        .reel-track:nth-child(2) {
+            animation-duration: 60s;
+            animation-delay: -18s;
+            top: 6%;
+            transform: translateY(0);
+            opacity: 0.3;
+        }
 
-/* MODULES */
-.modules{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:3rem}
-.module-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:1.5rem;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden}
-.module-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:20px 20px 0 0;opacity:0;transition:opacity 0.3s}
-.module-card:nth-child(1)::before{background:var(--purple)}
-.module-card:nth-child(2)::before{background:var(--teal)}
-.module-card:nth-child(3)::before{background:var(--coral)}
-.module-card:nth-child(4)::before{background:var(--amber)}
-.module-card:hover::before{opacity:1}
-.module-card:hover{transform:translateY(-6px);border-color:rgba(168,156,245,0.4);box-shadow:0 20px 60px rgba(0,0,0,0.4)}
-.module-icon{font-size:2rem;margin-bottom:0.8rem}
-.module-tag{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;padding:3px 10px;border-radius:999px;display:inline-block;margin-bottom:0.8rem}
-.tag-purple{background:rgba(124,111,238,0.15);color:var(--purple2);border:1px solid rgba(124,111,238,0.3)}
-.tag-teal{background:rgba(29,233,182,0.1);color:var(--teal);border:1px solid rgba(29,233,182,0.25)}
-.tag-coral{background:rgba(255,107,107,0.1);color:var(--coral);border:1px solid rgba(255,107,107,0.25)}
-.tag-amber{background:rgba(255,217,61,0.1);color:var(--amber);border:1px solid rgba(255,217,61,0.25)}
-.module-title{font-size:1rem;font-weight:600;margin-bottom:0.4rem}
-.module-desc{font-size:13px;color:var(--muted);line-height:1.5}
-.module-tech{display:flex;flex-wrap:wrap;gap:6px;margin-top:1rem}
-.tech-pill{font-family:'Space Mono',monospace;font-size:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:3px 8px;color:var(--muted)}
+        .reel-track:nth-child(3) {
+            animation-duration: 55s;
+            animation-delay: -28s;
+            top: 90%;
+            transform: translateY(0);
+            opacity: 0.2;
+        }
 
-/* FORM */
-.form-section{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:2.5rem;margin-bottom:2rem;animation:fadeUp 0.6s ease}
-.form-header{text-align:center;margin-bottom:2rem}
-.form-header h2{font-size:1.6rem;font-weight:600;margin-bottom:0.5rem}
-.form-header p{color:var(--muted);font-size:14px}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
-.form-group{display:flex;flex-direction:column;gap:8px}
-.form-group.full{grid-column:1/-1}
-label{font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted)}
-select,input[type=range]{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:14px;padding:10px 14px;outline:none;transition:border-color 0.2s;appearance:none;-webkit-appearance:none}
-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a7d9c' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;cursor:pointer}
-select:focus,select:hover{border-color:var(--purple)}
-select option{background:#1a1c35}
-input[type=range]{padding:8px 0;cursor:pointer;accent-color:var(--purple)}
-.range-row{display:flex;align-items:center;gap:10px}
-.range-row input{flex:1}
-.range-val{font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:var(--purple2);min-width:24px;text-align:right}
-.btn-analyze{width:100%;margin-top:1.5rem;background:linear-gradient(135deg,var(--purple) 0%,#5b4fcf 100%);color:#fff;border:none;border-radius:12px;padding:1rem 2rem;font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;letter-spacing:0.02em}
-.btn-analyze:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(124,111,238,0.4)}
-.btn-analyze:active{transform:scale(0.98)}
+        .reel-item {
+            width: 180px;
+            height: 300px;
+            border-radius: 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+            position: relative;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: var(--transition);
+            filter: saturate(0.9) contrast(1.05) brightness(1.02);
+        }
 
-/* RESULT */
-.result-section{display:none;animation:fadeUp 0.7s ease}
-.result-section.show{display:block}
-.archetype-card{background:var(--card);border:1px solid rgba(124,111,238,0.4);border-radius:24px;padding:2.5rem;text-align:center;margin-bottom:1.5rem;position:relative;overflow:hidden}
-.archetype-card::after{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(124,111,238,0.15) 0%,transparent 70%);pointer-events:none}
-.archetype-emoji{font-size:4rem;margin-bottom:1rem;display:block;animation:floatEmoji 3s ease-in-out infinite}
-.archetype-name{font-size:1.8rem;font-weight:700;margin-bottom:0.5rem}
-.archetype-desc{color:var(--muted);font-size:15px;line-height:1.6;max-width:480px;margin:0 auto 1.5rem}
-.orientation-badge{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:999px;font-size:14px;font-weight:500}
-.badge-ok{background:rgba(29,233,182,0.1);border:1px solid rgba(29,233,182,0.3);color:var(--teal)}
-.badge-risk{background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:var(--coral)}
+        .reel-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: var(--transition);
+        }
 
-/* PROBA BARS */
-.proba-section{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:1.8rem;margin-bottom:1.5rem}
-.proba-section h3{font-size:14px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:1.2rem}
-.proba-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-.proba-label{font-size:13px;min-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.proba-bar-bg{flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden}
-.proba-bar-fill{height:100%;border-radius:99px;transition:width 1.2s cubic-bezier(0.4,0,0.2,1)}
-.proba-pct{font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);min-width:36px;text-align:right}
+        .reel-item:hover {
+            filter: saturate(1.1) contrast(1.1) brightness(1.05);
+            transform: scale(1.03);
+            border-color: var(--accent);
+            box-shadow: 0 16px 48px rgba(43, 108, 158, 0.10);
+            z-index: 10;
+        }
 
-/* RECO */
-.reco-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:2rem}
-.reco-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.2rem;text-align:center}
-.reco-icon{font-size:1.5rem;margin-bottom:0.5rem}
-.reco-text{font-size:12px;color:var(--muted);line-height:1.5}
+        .reel-item .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 1rem 0.8rem;
+            background: linear-gradient(to top, rgba(244, 246, 250, 0.92), transparent);
+            color: var(--text-primary);
+        }
 
-.btn-reset{background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--muted);padding:0.7rem 1.5rem;font-family:'Space Grotesk',sans-serif;font-size:14px;cursor:pointer;transition:all 0.2s;display:block;margin:0 auto}
-.btn-reset:hover{border-color:var(--purple);color:var(--text)}
+        .reel-item .overlay h4 {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            margin-bottom: 2px;
+        }
 
-/* FOOTER */
-.footer{text-align:center;padding:2rem 0;border-top:1px solid var(--border);margin-top:3rem}
-.footer p{font-size:12px;color:var(--muted)}
-.footer span{color:var(--purple2)}
+        .reel-item .overlay p {
+            font-size: 9px;
+            opacity: 0.5;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
 
-/* ANIMATIONS */
-@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
-@keyframes dnaAnim{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.3)}}
-@keyframes floatEmoji{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+        @keyframes scrollReels {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
 
-@media(max-width:600px){
-  .stats{grid-template-columns:repeat(2,1fr)}
-  .modules{grid-template-columns:1fr}
-  .form-grid{grid-template-columns:1fr}
-  .reco-grid{grid-template-columns:1fr}
-}
-</style>
+        /* ─── 3D CANVAS ─── */
+        #three-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.10;
+        }
+
+        /* ─── OVERLAY ─── */
+        .overlay-light {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            background: radial-gradient(ellipse at center, rgba(244, 246, 250, 0.2), rgba(244, 246, 250, 0.7));
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            pointer-events: none;
+        }
+
+        /* ─── NAVIGATION ─── */
+        .main-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            height: var(--nav-height);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        .main-nav .logo {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+        .main-nav .logo span {
+            color: var(--accent);
+        }
+
+        .main-nav .nav-links {
+            display: flex;
+            gap: 4px;
+            list-style: none;
+            align-items: center;
+        }
+
+        .main-nav .nav-links li button {
+            padding: 0.5rem 1.2rem;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .main-nav .nav-links li button:hover {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+        .main-nav .nav-links li button.active {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(43, 108, 158, 0.15);
+        }
+
+        .btn-chat-nav {
+            padding: 0.5rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--accent-light);
+            color: var(--accent);
+            display: none;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-chat-nav:hover {
+            background: var(--accent);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+        .btn-chat-nav .badge {
+            background: var(--accent);
+            color: #fff;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            font-weight: 700;
+        }
+        .btn-chat-nav:hover .badge {
+            background: #fff;
+            color: var(--accent);
+        }
+        .btn-chat-nav.show {
+            display: inline-flex;
+        }
+
+        /* ─── LAYOUT ─── */
+        .app {
+            position: relative;
+            z-index: 3;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 1.5rem 1.5rem 3.5rem;
+            min-height: 100vh;
+        }
+
+        /* ─── PAGES ─── */
+        .page {
+            display: none;
+            animation: fadeUp 0.4s ease;
+        }
+        .page.active {
+            display: block;
+        }
+
+        /* ─── CARD ─── */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-soft);
+            transition: var(--transition);
+        }
+        .card:hover {
+            box-shadow: var(--shadow-medium);
+        }
+
+        /* ─── PAGE: HOME ─── */
+        .hero {
+            text-align: center;
+            padding: 2.5rem 0 2rem;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: var(--accent-light);
+            border: 1px solid rgba(43, 108, 158, 0.10);
+            border-radius: 999px;
+            padding: 5px 18px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--accent);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.4rem, 6vw, 4.2rem);
+            font-weight: 800;
+            line-height: 1.06;
+            letter-spacing: -0.04em;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        .hero h1 .gradient {
+            background: linear-gradient(135deg, #2b6c9e 0%, #4a8ab5 40%, #2b6c9e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-sub {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            max-width: 520px;
+            margin: 0 auto 2rem;
+            line-height: 1.8;
+            font-weight: 300;
+        }
+
+        .hero-cta {
+            display: inline-block;
+            padding: 0.8rem 2.5rem;
+            background: var(--accent);
+            border: none;
+            border-radius: 11px;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+        .hero-cta:hover {
+            background: #1f5a85;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(43, 108, 158, 0.20);
+        }
+
+        /* ─── STATS ─── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1.2rem 0.6rem;
+            text-align: center;
+            transition: var(--transition);
+            box-shadow: var(--shadow-soft);
+        }
+        .stat-card:hover {
+            border-color: var(--accent);
+            box-shadow: var(--shadow-medium);
+            transform: translateY(-2px);
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+        .stat-number .accent {
+            color: var(--accent);
+        }
+        .stat-label {
+            font-size: 10px;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        /* ─── PAGE: ANALYZE ─── */
+        .form-section {
+            padding: 2.5rem 3rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-soft);
+        }
+        .form-section:hover {
+            box-shadow: var(--shadow-medium);
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .form-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+        }
+        .form-header p {
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 300;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .form-group.full { grid-column: 1 / -1; }
+
+        .form-group label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-tertiary);
+        }
+
+        .form-group select,
+        .form-group input[type="range"] {
+            width: 100%;
+            background: var(--bg-body);
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            padding: 10px 14px;
+            outline: none;
+            transition: var(--transition);
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        .form-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%238899ae' d='M5 7L1 3h8z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+            cursor: pointer;
+        }
+        .form-group select:focus,
+        .form-group select:hover {
+            border-color: var(--accent);
+            background-color: var(--accent-light);
+        }
+        .form-group select option {
+            background: var(--bg-white);
+            color: var(--text-primary);
+        }
+
+        .form-group input[type="range"] {
+            padding: 5px 0;
+            cursor: pointer;
+            accent-color: var(--accent);
+            height: 3px;
+            background: var(--border-light);
+            border: none;
+        }
+        .form-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(43, 108, 158, 0.15);
+            transition: var(--transition);
+            border: 2px solid var(--bg-white);
+        }
+        .form-group input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .range-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .range-row input { flex: 1; }
+        .range-val {
+            font-weight: 600;
+            color: var(--accent);
+            min-width: 24px;
+            text-align: right;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            width: 100%;
+            margin-top: 1.8rem;
+            padding: 0.95rem 2rem;
+            background: var(--accent);
+            border: none;
+            border-radius: 11px;
+            color: var(--text-inverse);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            letter-spacing: 0.02em;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+            transition: 0.6s;
+        }
+        .btn-primary:hover::after {
+            left: 100%;
+        }
+        .btn-primary:hover {
+            background: #1f5a85;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(43, 108, 158, 0.20);
+        }
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        /* ─── PAGE: RESULTS ─── */
+        .result-section {
+            display: none;
+            animation: fadeUp 0.6s ease;
+        }
+        .result-section.show { display: block; }
+
+        .archetype-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            padding: 2.5rem 2.5rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-soft);
+            position: relative;
+            overflow: hidden;
+        }
+        .archetype-card::after {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(43, 108, 158, 0.03), transparent 70%);
+            pointer-events: none;
+        }
+
+        .archetype-name {
+            font-size: 1.7rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+        }
+        .archetype-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            max-width: 480px;
+            margin: 0 auto 1.2rem;
+            font-weight: 300;
+        }
+
+        .badge-status {
+            display: inline-block;
+            padding: 6px 18px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .badge-success {
+            background: #e6f4ee;
+            border: 1px solid #b8d9cc;
+            color: #1a7a5a;
+        }
+        .badge-warning {
+            background: #fef0e6;
+            border: 1px solid #f5d4c4;
+            color: #b8663a;
+        }
+
+        /* ─── PROBA ─── */
+        .proba-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            padding: 1.8rem 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .proba-section h3 {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-tertiary);
+            margin-bottom: 1.2rem;
+        }
+
+        .proba-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 7px;
+        }
+        .proba-label {
+            font-size: 12px;
+            font-weight: 400;
+            min-width: 160px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .proba-bar-bg {
+            flex: 1;
+            height: 4px;
+            background: var(--border-light);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+        .proba-bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            width: 0%;
+            transition: width 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .proba-pct {
+            font-weight: 500;
+            font-size: 11px;
+            color: var(--text-tertiary);
+            min-width: 36px;
+            text-align: right;
+        }
+
+        /* ─── RADAR ─── */
+        #radarChart {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+            border-radius: 10px;
+            background: var(--bg-body);
+        }
+
+        /* ─── RECOS ─── */
+        .reco-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+        .reco-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1.2rem 1rem;
+            text-align: center;
+            transition: var(--transition);
+            box-shadow: var(--shadow-soft);
+        }
+        .reco-card:hover {
+            border-color: var(--accent);
+            box-shadow: var(--shadow-medium);
+            transform: translateY(-2px);
+        }
+        .reco-number {
+            font-size: 9px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            margin-bottom: 0.4rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        .reco-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            font-weight: 300;
+        }
+
+        /* ─── ACTIONS ─── */
+        .result-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 0;
+        }
+
+        .btn-secondary {
+            padding: 0.7rem 1.8rem;
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid var(--border-light);
+            background: var(--bg-white);
+            color: var(--text-secondary);
+        }
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .btn-success {
+            padding: 0.7rem 1.8rem;
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            background: #e6f4ee;
+            color: #1a7a5a;
+            border: 1px solid #b8d9cc;
+        }
+        .btn-success:hover {
+            background: #cce8dc;
+            border-color: #8cc0ae;
+            transform: translateY(-2px);
+        }
+
+        .btn-chat {
+            padding: 0.7rem 1.8rem;
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            background: var(--accent-light);
+            color: var(--accent);
+            border: 1px solid rgba(43, 108, 158, 0.15);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-chat:hover {
+            background: var(--accent);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(43, 108, 158, 0.15);
+        }
+        .btn-chat .icon {
+            font-size: 1.1rem;
+        }
+
+        /* ─── CHATBOT MODAL ─── */
+        .chat-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .chat-modal-overlay.active {
+            display: flex;
+        }
+
+        .chat-modal {
+            background: var(--bg-white);
+            border-radius: var(--radius);
+            max-width: 520px;
+            width: 95%;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.3s ease;
+            overflow: hidden;
+        }
+
+        .chat-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+            background: var(--bg-white);
+            flex-shrink: 0;
+        }
+        .chat-modal-header h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .chat-modal-header .status {
+            font-size: 10px;
+            color: var(--text-tertiary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 400;
+        }
+        .chat-modal-header .status .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #2ecc71;
+            animation: pulse-dot 2s infinite;
+        }
+        .btn-close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            transition: var(--transition);
+            padding: 0 4px;
+            line-height: 1;
+        }
+        .btn-close-modal:hover {
+            color: var(--text-primary);
+            transform: rotate(90deg);
+        }
+
+        .chat-modal-body {
+            padding: 1.2rem 1.5rem 1.5rem;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-modal-body .chatbot-messages {
+            max-height: 320px;
+            overflow-y: auto;
+            padding-right: 6px;
+            margin-bottom: 1rem;
+            flex: 1;
+        }
+        .chat-modal-body .chatbot-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+        .chat-modal-body .chatbot-messages::-webkit-scrollbar-track {
+            background: var(--bg-body);
+            border-radius: 99px;
+        }
+        .chat-modal-body .chatbot-messages::-webkit-scrollbar-thumb {
+            background: var(--border-focus);
+            border-radius: 99px;
+        }
+
+        .chat-modal-body .quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 1rem;
+            flex-shrink: 0;
+        }
+        .chat-modal-body .quick-reply {
+            padding: 5px 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 999px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            background: var(--bg-body);
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Inter', sans-serif;
+        }
+        .chat-modal-body .quick-reply:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .chat-modal-body .chatbot-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .chat-modal-body .chatbot-input input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            outline: none;
+            transition: var(--transition);
+        }
+        .chat-modal-body .chatbot-input input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(43, 108, 158, 0.08);
+        }
+        .chat-modal-body .chatbot-input input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .chat-modal-body .chatbot-input .btn-send {
+            padding: 10px 18px;
+            background: var(--accent);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+        .chat-modal-body .chatbot-input .btn-send:hover {
+            background: #1f5a85;
+            transform: translateY(-1px);
+        }
+
+        .chat-modal-body .chat-message {
+            display: flex;
+            margin-bottom: 10px;
+            animation: fadeUp 0.3s ease;
+        }
+        .chat-modal-body .chat-message.user {
+            justify-content: flex-end;
+        }
+        .chat-modal-body .chat-message.bot {
+            justify-content: flex-start;
+        }
+
+        .chat-modal-body .chat-bubble {
+            max-width: 80%;
+            padding: 10px 16px;
+            border-radius: 14px;
+            font-size: 13px;
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+        .chat-modal-body .chat-message.user .chat-bubble {
+            background: var(--accent);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-modal-body .chat-message.bot .chat-bubble {
+            background: var(--chatbot-bot);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+        }
+        .chat-modal-body .chat-message .time {
+            font-size: 9px;
+            color: var(--text-tertiary);
+            margin-top: 3px;
+            display: block;
+            opacity: 0.6;
+        }
+        .chat-modal-body .chat-message.user .time {
+            text-align: right;
+        }
+
+        /* ─── PAGE: ABOUT ─── */
+        .about-section {
+            padding: 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-soft);
+        }
+        .about-section h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .about-section p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .about-item {
+            background: var(--bg-body);
+            padding: 1.2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+        }
+        .about-item h4 {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .about-item p {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-bottom: 0;
+        }
+
+        /* ─── FOOTER ─── */
+        .footer {
+            text-align: center;
+            padding: 2rem 0 0.5rem;
+            border-top: 1px solid var(--border-light);
+            margin-top: 3rem;
+        }
+        .footer p {
+            font-size: 10px;
+            color: var(--text-tertiary);
+            font-weight: 400;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .footer .highlight {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* ─── ANIMATIONS ─── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.7); }
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 768px) {
+            .main-nav { padding: 0 1rem; }
+            .main-nav .logo { font-size: 0.95rem; }
+            .main-nav .nav-links li button { font-size: 12px; padding: 0.4rem 0.8rem; }
+            .btn-chat-nav { font-size: 12px; padding: 0.4rem 0.8rem; }
+            
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .form-grid { grid-template-columns: 1fr; }
+            .reco-grid { grid-template-columns: 1fr; }
+            .about-grid { grid-template-columns: 1fr; }
+            
+            .archetype-card { padding: 1.8rem 1.2rem; }
+            .form-section { padding: 1.5rem; }
+            .result-actions { flex-direction: column; align-items: stretch; }
+            
+            .reel-item { width: 130px; height: 220px; }
+            .hero h1 { font-size: 2.2rem; }
+            .proba-label { min-width: 110px; font-size: 11px; }
+            
+            .chat-modal { max-width: 95%; max-height: 90vh; }
+            .chat-modal-body .chat-bubble { max-width: 90%; font-size: 12px; }
+        }
+
+        @media (max-width: 480px) {
+            .main-nav { padding: 0 0.6rem; flex-wrap: wrap; height: auto; padding-top: 8px; padding-bottom: 8px; gap: 6px; }
+            .main-nav .logo { font-size: 0.85rem; }
+            .main-nav .nav-links li button { font-size: 10px; padding: 4px 8px; }
+            .btn-chat-nav { font-size: 10px; padding: 4px 8px; }
+            body { padding-top: 70px; }
+            
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+            .stat-number { font-size: 1.4rem; }
+            .hero { padding: 1rem 0; }
+            .reel-item { width: 100px; height: 170px; }
+            .hero h1 { font-size: 1.8rem; }
+            .app { padding: 1rem 0.8rem 2.5rem; }
+            
+            .chat-modal { max-width: 100%; max-height: 100vh; border-radius: 0; }
+            .chat-modal-header { padding: 1rem; }
+            .chat-modal-body { padding: 1rem; }
+            .chat-modal-body .quick-replies { gap: 4px; }
+            .chat-modal-body .quick-reply { font-size: 10px; padding: 4px 10px; }
+        }
+    </style>
 </head>
 <body>
 
-<canvas id="canvas3d"></canvas>
-
-<div class="app">
-
-  <!-- HERO -->
-  <div class="hero">
-    <div class="hero-badge"><span></span> Projet ML Master — AcaDNA</div>
-    <h1>Lis ton<br><span class="gradient">empreinte académique</span></h1>
-    <div class="dna-strand">
-      <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    <!-- ─── REEL BACKGROUND ─── -->
+    <div class="reel-background">
+        <div class="reel-track" id="track1"></div>
+        <div class="reel-track" id="track2"></div>
+        <div class="reel-track" id="track3"></div>
     </div>
-    <p class="hero-sub">Un système ML end-to-end qui détecte ton archétype, prédit ta procrastination, ton masquage académique, et ton adéquation avec ta filière.</p>
-  </div>
 
-  <!-- STATS -->
-  <div class="stats">
-    <div class="stat"><div class="stat-num">300</div><div class="stat-label">Étudiants analysés</div></div>
-    <div class="stat"><div class="stat-num">87%</div><div class="stat-label">Précision KNN</div></div>
-    <div class="stat"><div class="stat-num">5</div><div class="stat-label">Archétypes</div></div>
-    <div class="stat"><div class="stat-num">4</div><div class="stat-label">Modules ML</div></div>
-  </div>
+    <!-- ─── THREE.JS ─── -->
+    <canvas id="three-canvas"></canvas>
 
-  
+    <!-- ─── OVERLAY ─── -->
+    <div class="overlay-light"></div>
 
-  <!-- FORM -->
-  <div class="form-section" id="formSection">
-    <div class="form-header">
-      <h2>🧬 Analyse ton profil</h2>
-      <p>Réponds aux questions — le modèle lit ton empreinte en temps réel</p>
-    </div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Performance académique (1–5)</label>
-        <div class="range-row">
-          <input type="range" min="1" max="5" value="3" id="q1" oninput="document.getElementById('q1v').textContent=this.value">
-          <span class="range-val" id="q1v">3</span>
+    <!-- ─── NAVIGATION ─── -->
+    <nav class="main-nav">
+        <div class="logo">Aca<span>DNA</span></div>
+        <ul class="nav-links">
+            <li><button class="active" onclick="navigateTo('home')">Home</button></li>
+            <li><button onclick="navigateTo('analyze')">Analyze</button></li>
+            <li><button onclick="navigateTo('results')" id="navResults" style="display:none;">Results</button></li>
+            <li><button onclick="navigateTo('about')">About</button></li>
+            <li>
+                <button class="btn-chat-nav" onclick="openChatModal()" id="navChat">
+                    💬 Coach
+                    <span class="badge">New</span>
+                </button>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- ─── APP ─── -->
+    <div class="app">
+
+        <!-- ═══ PAGE: HOME ═══ -->
+        <div class="page active" id="page-home">
+            <div class="hero">
+                <div class="hero-badge">Academic Fingerprint · ML Project</div>
+                <h1>
+                    Discover your<br />
+                    <span class="gradient">academic identity</span>
+                </h1>
+                <p class="hero-sub">
+                    An end-to-end machine learning system that analyzes your academic behavior,
+                    detects archetypes, and evaluates program alignment.
+                </p>
+                <button class="hero-cta" onclick="navigateTo('analyze')">Start Analysis →</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">300<span class="accent">+</span></div>
+                    <div class="stat-label">Students</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">87<span class="accent">%</span></div>
+                    <div class="stat-label">Accuracy</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">Archetypes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">ML Pipelines</div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="form-group">
-        <label>Satisfaction filière (1–5)</label>
-        <div class="range-row">
-          <input type="range" min="1" max="5" value="3" id="q11" oninput="document.getElementById('q11v').textContent=this.value">
-          <span class="range-val" id="q11v">3</span>
+
+        <!-- ═══ PAGE: ANALYZE ═══ -->
+        <div class="page" id="page-analyze">
+            <div class="form-section">
+                <div class="form-header">
+                    <h2>Profile Analysis</h2>
+                    <p>Complete the questionnaire — the model processes your fingerprint in real time</p>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Academic Performance (1–5)</label>
+                        <div class="range-row">
+                            <input type="range" min="1" max="5" value="3" id="q1" oninput="document.getElementById('q1v').textContent=this.value" />
+                            <span class="range-val" id="q1v">3</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Program Satisfaction (1–5)</label>
+                        <div class="range-row">
+                            <input type="range" min="1" max="5" value="3" id="q11" oninput="document.getElementById('q11v').textContent=this.value" />
+                            <span class="range-val" id="q11v">3</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Do you hide your stress?</label>
+                        <select id="q2">
+                            <option value="0">Never</option>
+                            <option value="1">Rarely</option>
+                            <option value="2" selected>Sometimes</option>
+                            <option value="3">Often</option>
+                            <option value="4">Always</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Do you pretend to be fine?</label>
+                        <select id="q14">
+                            <option value="0">Never</option>
+                            <option value="1">Rarely</option>
+                            <option value="2" selected>Sometimes</option>
+                            <option value="3">Often</option>
+                            <option value="4">Always</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Do you procrastinate?</label>
+                        <select id="q27">
+                            <option value="0">Never</option>
+                            <option value="1">Rarely</option>
+                            <option value="2" selected>Sometimes</option>
+                            <option value="3">Often</option>
+                            <option value="4">Always</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Considered changing program?</label>
+                        <select id="q36">
+                            <option value="0">No</option>
+                            <option value="1">Not sure</option>
+                            <option value="2">Yes</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Do you act differently from how you feel?</label>
+                        <select id="q17">
+                            <option value="0">Never</option>
+                            <option value="1">Rarely</option>
+                            <option value="2" selected>Sometimes</option>
+                            <option value="3">Often</option>
+                            <option value="4">Always</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Relationship with deadlines</label>
+                        <select id="q28">
+                            <option value="0">Plan well in advance</option>
+                            <option value="1">Start early but procrastinate</option>
+                            <option value="2" selected>Meet them at the last minute</option>
+                            <option value="3">Pressure motivates me</option>
+                            <option value="4">Often miss them</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="analyzeProfile()">
+                    Analyze academic fingerprint
+                </button>
+            </div>
         </div>
-      </div>
-      <div class="form-group">
-        <label>Tu caches ton stress ?</label>
-        <select id="q2">
-          <option value="0">Jamais</option>
-          <option value="1">Rarement</option>
-          <option value="2" selected>Parfois</option>
-          <option value="3">Souvent</option>
-          <option value="4">Toujours</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Tu fais semblant d'aller bien ?</label>
-        <select id="q14">
-          <option value="0">Jamais</option>
-          <option value="1">Rarement</option>
-          <option value="2" selected>Parfois</option>
-          <option value="3">Souvent</option>
-          <option value="4">Toujours</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Tu repousses les tâches ?</label>
-        <select id="q27">
-          <option value="0">Jamais</option>
-          <option value="1">Rarement</option>
-          <option value="2" selected>Parfois</option>
-          <option value="3">Souvent</option>
-          <option value="4">Toujours</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Envisagé changer de filière ?</label>
-        <select id="q36">
-          <option value="0">Non</option>
-          <option value="1">Pas sûr·e</option>
-          <option value="2">Oui</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Tu agis différemment de ce que tu ressens ?</label>
-        <select id="q17">
-          <option value="0">Jamais</option>
-          <option value="1">Rarement</option>
-          <option value="2" selected>Parfois</option>
-          <option value="3">Souvent</option>
-          <option value="4">Toujours</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Relation avec les deadlines</label>
-        <select id="q28">
-          <option value="0">Je planifie longtemps à l'avance</option>
-          <option value="1">Je commence tôt mais je procrastine</option>
-          <option value="2" selected>Je les rencontre mais à la dernière minute</option>
-          <option value="3">La pression me motive</option>
-          <option value="4">Je les rate souvent</option>
-        </select>
-      </div>
+
+        <!-- ═══ PAGE: RESULTS ═══ -->
+        <div class="page" id="page-results">
+            <div class="result-section show" id="resultSection">
+                <div class="archetype-card">
+                    <div class="archetype-name" id="resName">—</div>
+                    <div class="archetype-desc" id="resDesc">—</div>
+                    <div class="badge-status" id="resBadge"></div>
+                </div>
+
+                <div class="proba-section">
+                    <h3>Academic fingerprint profile</h3>
+                    <canvas id="radarChart" width="500" height="380"></canvas>
+                </div>
+
+                <div class="proba-section">
+                    <h3>Model confidence distribution</h3>
+                    <div id="probaRows"></div>
+                </div>
+
+                <div class="reco-grid" id="recoGrid"></div>
+
+                <!-- ─── BOUTONS D'ACTION ─── -->
+                <div class="result-actions">
+                    <button class="btn-success" onclick="exportPDF()">📄 Export report (PDF)</button>
+                    <button class="btn-chat" onclick="openChatModal()">
+                        <span class="icon">💬</span> Ask Academic Coach
+                    </button>
+                    <button class="btn-secondary" onclick="resetForm()">🔄 New analysis</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ PAGE: ABOUT ═══ -->
+        <div class="page" id="page-about">
+            <div class="about-section">
+                <h2>About AcaDNA</h2>
+                <p>
+                    <strong>AcaDNA</strong> is an end-to-end machine learning project designed to analyze
+                    academic behaviors and identify student archetypes. Built as a Master's project,
+                    it combines clustering, classification, and explainable AI to provide
+                    personalized academic insights.
+                </p>
+                
+                <div class="about-grid">
+                    <div class="about-item">
+                        <h4>🧬 K-Means Clustering</h4>
+                        <p>Identifies 5 distinct student archetypes with 87% silhouette score</p>
+                    </div>
+                    <div class="about-item">
+                        <h4>📊 XGBoost + SHAP</h4>
+                        <p>Explains cluster characteristics with interpretable features</p>
+                    </div>
+                    <div class="about-item">
+                        <h4>🎯 KNN Classification</h4>
+                        <p>Predicts program alignment with 87% accuracy</p>
+                    </div>
+                    <div class="about-item">
+                        <h4>🤖 Interactive Coach</h4>
+                        <p>AI-powered chatbot for personalized academic guidance</p>
+                    </div>
+                </div>
+
+                <div style="margin-top:1.5rem;padding:1rem;background:var(--bg-body);border-radius:12px;border:1px solid var(--border-light);">
+                    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:0;">
+                        <strong>Tech Stack:</strong> Python · Scikit-learn · XGBoost · SHAP · HTML/CSS/JS · Three.js
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <p>
+                AcaDNA — <span class="highlight">Academic Fingerprint</span> ·
+                K-Means · XGBoost · SHAP · KNN
+            </p>
+        </div>
+
     </div>
-    <button class="btn-analyze" onclick="analyzeProfile()">🔍 Analyser mon empreinte académique</button>
-  </div>
 
-  <!-- RESULT -->
-  <div class="result-section" id="resultSection">
-    <div class="archetype-card">
-      <span class="archetype-emoji" id="resEmoji">🌙</span>
-      <div class="archetype-name" id="resName">—</div>
-      <div class="archetype-desc" id="resDesc">—</div>
-      <div class="orientation-badge" id="resBadge"></div>
+    <!-- ─── CHATBOT MODAL ─── -->
+    <div class="chat-modal-overlay" id="chatModalOverlay" onclick="if(event.target===this) closeChatModal()">
+        <div class="chat-modal">
+            <div class="chat-modal-header">
+                <h3>💬 Academic Coach</h3>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div class="status">
+                        <span class="dot"></span>
+                        <span>Online</span>
+                    </div>
+                    <button class="btn-close-modal" onclick="closeChatModal()">✕</button>
+                </div>
+            </div>
+            <div class="chat-modal-body">
+                <div class="chatbot-messages" id="chatModalMessages">
+                    <!-- Messages apparaissent ici -->
+                </div>
+
+                <div class="quick-replies" id="quickRepliesModal">
+                    <button class="quick-reply" onclick="sendQuickReplyModal('What does my archetype mean?')">
+                        What does my archetype mean?
+                    </button>
+                    <button class="quick-reply" onclick="sendQuickReplyModal('Give me study tips')">
+                        Give me study tips
+                    </button>
+                    <button class="quick-reply" onclick="sendQuickReplyModal('How can I improve?')">
+                        How can I improve?
+                    </button>
+                    <button class="quick-reply" onclick="sendQuickReplyModal('Explain my radar chart')">
+                        Explain my radar chart
+                    </button>
+                </div>
+
+                <div class="chatbot-input">
+                    <input type="text" id="chatModalInput" placeholder="Ask me anything about your profile..." onkeypress="if(event.key==='Enter') sendMessageModal()" />
+                    <button class="btn-send" onclick="sendMessageModal()">Send</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="proba-section">
-      <h3>Confiance du modèle par archétype</h3>
-      <div id="probaRows"></div>
-    </div>
+    <!-- ─── SCRIPTS ─── -->
 
-    <div class="reco-grid" id="recoGrid"></div>
+    <!-- Generate Reel Images -->
+    <script>
+        const REEL_IMAGES = [
+            'https://images.unsplash.com/photo-1523050854058-8df90110c7f1?w=400&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1513258496099-48168024aec0?w=400&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=400&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1519452575417-564c1401ecc0?w=400&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1523580846011-d3a3bcdf04cb?w=400&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=600&fit=crop',
+            'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&h=600&fit=crop',
+        ];
 
-    <button class="btn-reset" onclick="resetForm()">↩ Analyser un autre profil</button>
-  </div>
+        const TITLES = [
+            'Master Student', 'Campus Life', 'Library', 'Study Group',
+            'Lecture Hall', 'Research Lab', 'Graduation', 'Networking',
+            'Conference', 'Research'
+        ];
 
-  <!-- FOOTER -->
-  <div class="footer">
-    <p>AcaDNA — <span>L'empreinte digitale académique</span> · Projet ML Master · K-Means · XGBoost · SHAP · KNN</p>
-  </div>
+        function generateReelTrack(trackId, offset = 0) {
+            const track = document.getElementById(trackId);
+            let html = '';
+            for (let i = 0; i < 14; i++) {
+                const idx = (i + offset) % REEL_IMAGES.length;
+                html += `
+                    <div class="reel-item">
+                        <img src="${REEL_IMAGES[idx]}" alt="${TITLES[idx]}" loading="lazy" />
+                        <div class="overlay">
+                            <h4>${TITLES[idx]}</h4>
+                            <p>${['Master 1', 'Master 2', 'PhD', 'Post-doc', 'Research'][i % 5]}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            track.innerHTML = html + html;
+        }
 
-</div>
+        generateReelTrack('track1', 0);
+        generateReelTrack('track2', 3);
+        generateReelTrack('track3', 6);
+    </script>
 
-<script>
-// ── 3D PARTICLE CANVAS ──────────────────────────────────
-const canvas=document.getElementById('canvas3d');
-const ctx=canvas.getContext('2d');
-let particles=[];
-let W,H;
-function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
-resize();
-window.addEventListener('resize',resize);
-function initParticles(){
-  particles=[];
-  const colors=['#7c6fee','#1de9b6','#ff6b6b','#ffd93d','#a89cf5'];
-  for(let i=0;i<80;i++){
-    particles.push({
-      x:Math.random()*W,y:Math.random()*H,
-      vx:(Math.random()-0.5)*0.4,vy:(Math.random()-0.5)*0.4,
-      r:Math.random()*2.5+0.5,
-      color:colors[Math.floor(Math.random()*colors.length)],
-      alpha:Math.random()*0.6+0.2
-    });
-  }
-}
-initParticles();
-function drawParticles(){
-  ctx.clearRect(0,0,W,H);
-  particles.forEach(p=>{
-    p.x+=p.vx;p.y+=p.vy;
-    if(p.x<0)p.x=W;if(p.x>W)p.x=0;
-    if(p.y<0)p.y=H;if(p.y>H)p.y=0;
-    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    ctx.fillStyle=p.color;ctx.globalAlpha=p.alpha;ctx.fill();
-  });
-  particles.forEach((a,i)=>{
-    for(let j=i+1;j<particles.length;j++){
-      const b=particles[j];
-      const d=Math.hypot(a.x-b.x,a.y-b.y);
-      if(d<120){
-        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
-        ctx.strokeStyle=a.color;ctx.globalAlpha=(1-d/120)*0.12;ctx.lineWidth=0.5;ctx.stroke();
-      }
-    }
-  });
-  ctx.globalAlpha=1;
-  requestAnimationFrame(drawParticles);
-}
-drawParticles();
+    <!-- Three.js -->
+    <script>
+        (function initThree() {
+            const canvas = document.getElementById('three-canvas');
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setSize(window.innerWidth, window.innerHeight);
 
-// ── ARCHETYPES DATA ──────────────────────────────────────
-const ARCHETYPES=[
-  {emoji:'🌙',name:'Le Solitaire Nocturne',desc:'Tu travailles seul, tard dans la nuit, et tu gères. Ton autonomie est une force — mais renforce ton réseau.',color:'#7c6fee',
-   recos:['Rejoins un groupe d\'étude', 'Planifie tes sessions', 'Utilise des outils collaboratifs']},
-  {emoji:'😊',name:'Le Façadier Passionné',desc:'Passionné par tes études, mais tu caches ce que tu ressens vraiment. Parler à quelqu\'un de confiance peut tout changer.',color:'#a89cf5',
-   recos:['Parle à un mentor', 'Journal de bord émotionnel', 'Rejoins une communauté']},
-  {emoji:'🎯',name:'L\'Organisé Serein',desc:'Tu planifies, tu anticipes, tu exécutes. Tu es sur la bonne voie — continue à optimiser tes méthodes.',color:'#1de9b6',
-   recos:['Explore des techniques avancées', 'Mentor tes pairs', 'Vise des projets ambitieux']},
-  {emoji:'⚡',name:'Le Procrastinateur Sous Pression',desc:'Tu attends le dernier moment — et ça marche, mais c\'est épuisant. Découpe tes tâches en micro-étapes.',color:'#ff6b6b',
-   recos:['Technique Pomodoro', 'Décompose les tâches', 'Élimine les distractions']},
-  {emoji:'🎭',name:'Le Masqué Épuisé',desc:'Tu souris en classe mais tu portes beaucoup seul. Accorde-toi du repos sans culpabilité.',color:'#ffd93d',
-   recos:['Pratique l\'auto-compassion', 'Cherche du soutien', 'Limite les engagements']},
-];
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 2, 12);
+            camera.lookAt(0, 0, 0);
 
-// ── LOGIC ────────────────────────────────────────────────
-function scoreProfile(){
-  const q1=parseInt(document.getElementById('q1').value);
-  const q11=parseInt(document.getElementById('q11').value);
-  const q2=parseInt(document.getElementById('q2').value);
-  const q14=parseInt(document.getElementById('q14').value);
-  const q17=parseInt(document.getElementById('q17').value);
-  const q27=parseInt(document.getElementById('q27').value);
-  const q28=parseInt(document.getElementById('q28').value);
-  const q36=parseInt(document.getElementById('q36').value);
+            const ambient = new THREE.AmbientLight(0x445566, 0.5);
+            scene.add(ambient);
+            const dirLight = new THREE.DirectionalLight(0x2b6c9e, 0.7);
+            dirLight.position.set(2, 4, 6);
+            scene.add(dirLight);
+            const dirLight2 = new THREE.DirectionalLight(0x4a8ab5, 0.3);
+            dirLight2.position.set(-3, -1, 4);
+            scene.add(dirLight2);
 
-  const masquage=(q2+q14+q17)/12;
-  const procra=(q27+q28)/8;
-  const satisfaction=q11/5;
-  const perf=q1/5;
-  const oriente=q36/2;
+            const group = new THREE.Group();
+            const colors = [0x2b6c9e, 0x4a8ab5, 0x2b6c9e, 0x4a8ab5, 0x2b6c9e];
+            const spheres = [];
+            const numSpheres = 35;
+            const radius = 2.0;
+            const height = 4.5;
 
-  let scores=[0,0,0,0,0];
-  // C0 Solitaire nocturne: perf haute, masquage BAS, procra basse, satisfaction BASSE (travaille seul, pas besoin de validation sociale)
-  scores[0]=perf*0.35+(1-masquage)*0.35+(1-procra)*0.15+(1-satisfaction)*0.15;
-  // C1 Façadier passionné: satisfaction haute, masquage TRES haut (cache tout malgré la passion)
-  scores[1]=satisfaction*0.3+masquage*0.5+perf*0.1+(1-procra)*0.1;
-  // C2 Organisé serein: perf haute, procra TRES basse, satisfaction haute, masquage BAS aussi mais distinct de C0 par satisfaction
-  scores[2]=perf*0.25+(1-procra)*0.35+satisfaction*0.35+(1-masquage)*0.05;
-  // C3 Procrastinateur: procra TRES haute, oriente haut, perf basse
-  scores[3]=procra*0.55+oriente*0.25+(1-perf)*0.2;
-  // C4 Masqué épuisé: masquage TRES haut, satisfaction TRES basse, perf moyenne-basse
-  scores[4]=masquage*0.4+(1-satisfaction)*0.4+(1-perf)*0.2;
+            for (let i = 0; i < numSpheres; i++) {
+                const t = i / numSpheres;
+                const angle = t * Math.PI * 8;
+                const y = -height / 2 + t * height;
+                const x = radius * Math.cos(angle);
+                const z = radius * Math.sin(angle);
 
-  // Amplification softmax (température basse = écarts plus nets, comme un vrai modèle confiant)
-  const T=0.12;
-  const maxScore=Math.max(...scores);
-  const exp=scores.map(s=>Math.exp((s-maxScore)/T));
-  const sumExp=exp.reduce((a,b)=>a+b,0);
-  const proba=exp.map(e=>e/sumExp);
-  const cluster=proba.indexOf(Math.max(...proba));
-  const malOriente=(q36>=1||q11<=2)?1:0;
-  return{cluster,proba,malOriente};
-}
+                const size = 0.1 + 0.15 * (1 - Math.abs(t - 0.5) * 2);
+                const geo = new THREE.SphereGeometry(size, 10, 10);
+                const mat = new THREE.MeshStandardMaterial({
+                    color: colors[i % colors.length],
+                    emissive: colors[i % colors.length],
+                    emissiveIntensity: 0.10,
+                    metalness: 0.6,
+                    roughness: 0.25,
+                    transparent: true,
+                    opacity: 0.30,
+                });
+                const sphere = new THREE.Mesh(geo, mat);
+                sphere.position.set(x, y, z);
+                group.add(sphere);
+                spheres.push(sphere);
+            }
 
-function analyzeProfile(){
-  const{cluster,proba,malOriente}=scoreProfile();
-  const arch=ARCHETYPES[cluster];
+            for (let i = 0; i < spheres.length - 1; i++) {
+                const a = spheres[i];
+                const b = spheres[i + 1];
+                const points = [
+                    new THREE.Vector3(a.position.x, a.position.y, a.position.z),
+                    new THREE.Vector3(b.position.x, b.position.y, b.position.z)
+                ];
+                const geo = new THREE.BufferGeometry().setFromPoints(points);
+                const mat = new THREE.LineBasicMaterial({
+                    color: 0x2b6c9e,
+                    transparent: true,
+                    opacity: 0.06,
+                });
+                const line = new THREE.Line(geo, mat);
+                group.add(line);
+            }
 
-  document.getElementById('resEmoji').textContent=arch.emoji;
-  document.getElementById('resName').textContent=arch.name;
-  document.getElementById('resDesc').textContent=arch.desc;
+            scene.add(group);
 
-  const badge=document.getElementById('resBadge');
-  if(malOriente===1){
-    badge.className='orientation-badge badge-risk';
-    badge.textContent='⚠️ Possible inadéquation avec ta filière';
-  } else {
-    badge.className='orientation-badge badge-ok';
-    badge.textContent='✅ Bien aligné avec ta filière';
-  }
+            const particleGeo = new THREE.BufferGeometry();
+            const particleCount = 150;
+            const positions = new Float32Array(particleCount * 3);
+            for (let i = 0; i < particleCount * 3; i++) {
+                positions[i] = (Math.random() - 0.5) * 20;
+            }
+            particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-  const rows=document.getElementById('probaRows');
-  rows.innerHTML='';
-  const colors=['#7c6fee','#a89cf5','#1de9b6','#ff6b6b','#ffd93d'];
-  ARCHETYPES.forEach((a,i)=>{
-    const pct=Math.round(proba[i]*100);
-    rows.innerHTML+=`
-      <div class="proba-row">
-        <span class="proba-label">${a.emoji} ${a.name}</span>
-        <div class="proba-bar-bg"><div class="proba-bar-fill" style="width:0%;background:${colors[i]}" data-w="${pct}%"></div></div>
-        <span class="proba-pct">${pct}%</span>
-      </div>`;
-  });
-  setTimeout(()=>{
-    document.querySelectorAll('.proba-bar-fill').forEach(el=>{el.style.width=el.dataset.w});
-  },100);
+            const particleMat = new THREE.PointsMaterial({
+                color: 0x2b6c9e,
+                size: 0.025,
+                transparent: true,
+                opacity: 0.10,
+                blending: THREE.AdditiveBlending,
+            });
+            const particles = new THREE.Points(particleGeo, particleMat);
+            scene.add(particles);
 
-  const reco=document.getElementById('recoGrid');
-  reco.innerHTML=arch.recos.map(r=>`
-    <div class="reco-card">
-      <div class="reco-icon">💡</div>
-      <div class="reco-text">${r}</div>
-    </div>`).join('');
+            function resize() {
+                const w = window.innerWidth;
+                const h = window.innerHeight;
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w, h);
+            }
+            window.addEventListener('resize', resize);
 
-  document.getElementById('formSection').style.display='none';
-  const res=document.getElementById('resultSection');
-  res.classList.add('show');
-  res.scrollIntoView({behavior:'smooth',block:'start'});
-}
+            let time = 0;
 
-function resetForm(){
-  document.getElementById('resultSection').classList.remove('show');
-  document.getElementById('formSection').style.display='block';
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-</script>
+            function animate() {
+                requestAnimationFrame(animate);
+                time += 0.004;
+
+                group.rotation.y = time * 0.2;
+                group.rotation.x = Math.sin(time * 0.06) * 0.06;
+                group.rotation.z = Math.cos(time * 0.03) * 0.03;
+
+                particles.rotation.y = time * 0.006;
+
+                renderer.render(scene, camera);
+            }
+            animate();
+        })();
+    </script>
+
+    <!-- ─── ARCHETYPES ─── -->
+    <script>
+        const ARCHETYPES = [{
+            name: 'The Night Owl',
+            desc: 'You work independently, often late at night. Your autonomy is a strength — but consider building a stronger academic network.',
+            color: '#2b6c9e',
+            recos: ['Join a study group', 'Plan your sessions strategically', 'Use collaborative tools']
+        }, {
+            name: 'The Passionate Pretender',
+            desc: 'You are deeply passionate about your studies, yet you conceal your true feelings. Opening up to a trusted mentor can be transformative.',
+            color: '#4a8ab5',
+            recos: ['Schedule regular mentor meetings', 'Keep an emotional journal', 'Engage with academic communities']
+        }, {
+            name: 'The Serene Organizer',
+            desc: 'You plan, anticipate, and execute with precision. Continue refining your methods and consider mentoring others.',
+            color: '#2b8c7a',
+            recos: ['Explore advanced study techniques', 'Mentor your peers', 'Take on ambitious projects']
+        }, {
+            name: 'The Pressure Procrastinator',
+            desc: 'You thrive under last-minute pressure — but this pattern is exhausting. Breaking tasks into micro-steps can help.',
+            color: '#c07a5a',
+            recos: ['Adopt the Pomodoro technique', 'Break tasks into micro-steps', 'Minimize digital distractions']
+        }, {
+            name: 'The Exhausted Masker',
+            desc: 'You present a composed exterior while carrying significant internal burden. Prioritize rest and seek support.',
+            color: '#b8985a',
+            recos: ['Practice self-compassion daily', 'Seek professional support', 'Set realistic boundaries']
+        }];
+    </script>
+
+    <!-- ─── LOGIC ─── -->
+    <script>
+        // Stockage du profil actuel
+        let currentArchetype = null;
+        let currentProbas = null;
+        let currentDims = null;
+
+        // ─── NAVIGATION ───
+        function navigateTo(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const target = document.getElementById('page-' + page);
+            if (target) target.classList.add('active');
+            
+            document.querySelectorAll('.nav-links button:not(.btn-chat-nav)').forEach(btn => btn.classList.remove('active'));
+            const navBtn = document.querySelector(`.nav-links button[onclick*="${page}"]`);
+            if (navBtn) navBtn.classList.add('active');
+            
+            if (page === 'results') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function showResultsNav() {
+            document.getElementById('navResults').style.display = 'block';
+            document.getElementById('navChat').classList.add('show');
+        }
+
+        // ─── ANALYSE ───
+        function scoreProfile() {
+            const q1 = parseInt(document.getElementById('q1').value);
+            const q11 = parseInt(document.getElementById('q11').value);
+            const q2 = parseInt(document.getElementById('q2').value);
+            const q14 = parseInt(document.getElementById('q14').value);
+            const q17 = parseInt(document.getElementById('q17').value);
+            const q27 = parseInt(document.getElementById('q27').value);
+            const q28 = parseInt(document.getElementById('q28').value);
+            const q36 = parseInt(document.getElementById('q36').value);
+
+            const masquage = (q2 + q14 + q17) / 12;
+            const procra = (q27 + q28) / 8;
+            const satisfaction = q11 / 5;
+            const perf = q1 / 5;
+            const oriente = q36 / 2;
+
+            let scores = [0, 0, 0, 0, 0];
+            scores[0] = perf * 0.35 + (1 - masquage) * 0.35 + (1 - procra) * 0.15 + (1 - satisfaction) * 0.15;
+            scores[1] = satisfaction * 0.3 + masquage * 0.5 + perf * 0.1 + (1 - procra) * 0.1;
+            scores[2] = perf * 0.25 + (1 - procra) * 0.35 + satisfaction * 0.35 + (1 - masquage) * 0.05;
+            scores[3] = procra * 0.55 + oriente * 0.25 + (1 - perf) * 0.2;
+            scores[4] = masquage * 0.4 + (1 - satisfaction) * 0.4 + (1 - perf) * 0.2;
+
+            const T = 0.12;
+            const maxScore = Math.max(...scores);
+            const exp = scores.map(s => Math.exp((s - maxScore) / T));
+            const sumExp = exp.reduce((a, b) => a + b, 0);
+            const proba = exp.map(e => e / sumExp);
+            const cluster = proba.indexOf(Math.max(...proba));
+            const malOriente = (q36 >= 1 || q11 <= 2) ? 1 : 0;
+            return { cluster, proba, malOriente, dims: [perf, masquage, procra, satisfaction] };
+        }
+
+        function drawRadar(values, color) {
+            const canvas = document.getElementById('radarChart');
+            const ctx = canvas.getContext('2d');
+            const W = canvas.width, H = canvas.height;
+            const cx = W / 2, cy = H / 2 - 10, radius = 130;
+            const labels = ['Performance', 'Masking', 'Procrastination', 'Satisfaction'];
+            const n = 4;
+            ctx.clearRect(0, 0, W, H);
+
+            for (let ring = 1; ring <= 4; ring++) {
+                ctx.beginPath();
+                for (let i = 0; i <= n; i++) {
+                    const ang = -Math.PI / 2 + i * (2 * Math.PI / n);
+                    const r = radius * (ring / 4);
+                    const x = cx + r * Math.cos(ang), y = cy + r * Math.sin(ang);
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.strokeStyle = 'rgba(0,0,0,0.04)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            ctx.font = '11px Inter, sans-serif';
+            ctx.fillStyle = '#8899ae';
+            ctx.textAlign = 'center';
+            for (let i = 0; i < n; i++) {
+                const ang = -Math.PI / 2 + i * (2 * Math.PI / n);
+                const lx = cx + (radius + 26) * Math.cos(ang), ly = cy + (radius + 26) * Math.sin(ang);
+                ctx.fillText(labels[i], lx, ly + 4);
+            }
+
+            ctx.beginPath();
+            for (let i = 0; i < n; i++) {
+                const ang = -Math.PI / 2 + i * (2 * Math.PI / n);
+                const r = radius * values[i];
+                const x = cx + r * Math.cos(ang), y = cy + r * Math.sin(ang);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fillStyle = color + '18';
+            ctx.fill();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            for (let i = 0; i < n; i++) {
+                const ang = -Math.PI / 2 + i * (2 * Math.PI / n);
+                const r = radius * values[i];
+                const x = cx + r * Math.cos(ang), y = cy + r * Math.sin(ang);
+                ctx.beginPath();
+                ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.fill();
+            }
+        }
+
+        function analyzeProfile() {
+            const { cluster, proba, malOriente, dims } = scoreProfile();
+            const arch = ARCHETYPES[cluster];
+
+            currentArchetype = arch;
+            currentProbas = proba;
+            currentDims = dims;
+
+            drawRadar(dims, arch.color);
+
+            document.getElementById('resName').textContent = arch.name;
+            document.getElementById('resName').style.color = arch.color;
+            document.getElementById('resDesc').textContent = arch.desc;
+
+            const badge = document.getElementById('resBadge');
+            if (malOriente === 1) {
+                badge.className = 'badge-status badge-warning';
+                badge.textContent = 'Potential program misalignment detected';
+            } else {
+                badge.className = 'badge-status badge-success';
+                badge.textContent = 'Strong program alignment';
+            }
+
+            const rows = document.getElementById('probaRows');
+            rows.innerHTML = '';
+            const colors = ['#2b6c9e', '#4a8ab5', '#2b8c7a', '#c07a5a', '#b8985a'];
+            ARCHETYPES.forEach((a, i) => {
+                const pct = Math.round(proba[i] * 100);
+                rows.innerHTML += `
+                    <div class="proba-row">
+                        <span class="proba-label">${a.name}</span>
+                        <div class="proba-bar-bg">
+                            <div class="proba-bar-fill" style="width:0%;background:${colors[i]}" data-w="${pct}%"></div>
+                        </div>
+                        <span class="proba-pct">${pct}%</span>
+                    </div>`;
+            });
+            setTimeout(() => {
+                document.querySelectorAll('.proba-bar-fill').forEach(el => {
+                    el.style.width = el.dataset.w;
+                });
+            }, 100);
+
+            const reco = document.getElementById('recoGrid');
+            reco.innerHTML = arch.recos.map((r, idx) =>
+                `<div class="reco-card">
+                    <div class="reco-number">Recommendation ${idx + 1}</div>
+                    <div class="reco-text">${r}</div>
+                </div>`
+            ).join('');
+
+            initChatbotModal(arch);
+            showResultsNav();
+            navigateTo('results');
+        }
+
+        function resetForm() {
+            document.getElementById('resName').textContent = '—';
+            document.getElementById('resDesc').textContent = '—';
+            document.getElementById('resBadge').textContent = '';
+            document.getElementById('probaRows').innerHTML = '';
+            document.getElementById('recoGrid').innerHTML = '';
+            document.getElementById('chatModalMessages').innerHTML = '';
+            document.getElementById('navResults').style.display = 'none';
+            document.getElementById('navChat').classList.remove('show');
+            currentArchetype = null;
+            currentProbas = null;
+            currentDims = null;
+            navigateTo('analyze');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ─── EXPORT PDF AVEC VRAI RAPPORT ───
+        function generateReportHTML() {
+            if (!currentArchetype) return null;
+
+            const arch = currentArchetype;
+            const dims = currentDims;
+            const probas = currentProbas;
+            const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+            // Créer le radar en image
+            const radarCanvas = document.getElementById('radarChart');
+            const radarDataUrl = radarCanvas.toDataURL('image/png');
+
+            // Construire le HTML du rapport
+            return `
+                <div style="font-family: 'Inter', Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px; color: #1a2634; background: white;">
+                    
+                    <!-- En-tête -->
+                    <div style="text-align: center; border-bottom: 3px solid #2b6c9e; padding-bottom: 20px; margin-bottom: 30px;">
+                        <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin: 0; color: #1a2634;">
+                            Aca<span style="color: #2b6c9e;">DNA</span>
+                        </h1>
+                        <p style="font-size: 12px; color: #8899ae; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 4px;">
+                            Academic Fingerprint Report
+                        </p>
+                        <p style="font-size: 11px; color: #8899ae; margin-top: 4px;">
+                            Generated on ${date}
+                        </p>
+                    </div>
+
+                    <!-- Profil -->
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h2 style="font-size: 24px; font-weight: 700; color: ${arch.color}; margin-bottom: 4px;">
+                            ${arch.name}
+                        </h2>
+                        <p style="font-size: 14px; color: #4a5a6e; max-width: 500px; margin: 0 auto; line-height: 1.6;">
+                            ${arch.desc}
+                        </p>
+                        <div style="display: inline-block; margin-top: 12px; padding: 4px 16px; border-radius: 999px; font-size: 12px; font-weight: 500; background: #e6f4ee; color: #1a7a5a; border: 1px solid #b8d9cc;">
+                            ✓ Strong program alignment
+                        </div>
+                    </div>
+
+                    <!-- Radar + Scores -->
+                    <div style="display: flex; gap: 30px; align-items: center; margin-bottom: 30px; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 250px;">
+                            <img src="${radarDataUrl}" alt="Radar Chart" style="width: 100%; max-width: 350px; display: block; margin: 0 auto;" />
+                        </div>
+                        <div style="flex: 1; min-width: 200px;">
+                            <h3 style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #8899ae; margin-bottom: 12px;">
+                                Dimension Scores
+                            </h3>
+                            ${['Performance', 'Masking', 'Procrastination', 'Satisfaction'].map((label, i) => `
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                                    <span style="font-size: 12px; min-width: 110px; color: #4a5a6e;">${label}</span>
+                                    <div style="flex: 1; height: 6px; background: #e8ecf2; border-radius: 99px; overflow: hidden;">
+                                        <div style="height: 100%; width: ${Math.round(dims[i] * 100)}%; background: ${arch.color}; border-radius: 99px;"></div>
+                                    </div>
+                                    <span style="font-size: 12px; font-weight: 600; color: #1a2634; min-width: 32px; text-align: right;">${Math.round(dims[i] * 100)}%</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Confiance du modèle -->
+                    <div style="margin-bottom: 30px; background: #f8f9fc; border-radius: 12px; padding: 20px;">
+                        <h3 style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #8899ae; margin-bottom: 12px;">
+                            Model Confidence Distribution
+                        </h3>
+                        ${ARCHETYPES.map((a, i) => `
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                                <span style="font-size: 12px; min-width: 150px; color: #4a5a6e;">${a.name}</span>
+                                <div style="flex: 1; height: 4px; background: #e8ecf2; border-radius: 99px; overflow: hidden;">
+                                    <div style="height: 100%; width: ${Math.round(probas[i] * 100)}%; background: ${['#2b6c9e', '#4a8ab5', '#2b8c7a', '#c07a5a', '#b8985a'][i]}; border-radius: 99px;"></div>
+                                </div>
+                                <span style="font-size: 12px; color: #8899ae; min-width: 36px; text-align: right;">${Math.round(probas[i] * 100)}%</span>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- Recommandations -->
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #8899ae; margin-bottom: 12px;">
+                            Personalized Recommendations
+                        </h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                            ${arch.recos.map((r, i) => `
+                                <div style="background: #f8f9fc; border-radius: 10px; padding: 14px; text-align: center; border: 1px solid #e8ecf2;">
+                                    <div style="font-size: 9px; font-weight: 600; color: #8899ae; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 4px;">
+                                        Recommendation ${i + 1}
+                                    </div>
+                                    <div style="font-size: 12px; color: #4a5a6e; line-height: 1.4;">${r}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Pied de page -->
+                    <div style="text-align: center; border-top: 1px solid #e8ecf2; padding-top: 16px; margin-top: 20px;">
+                        <p style="font-size: 9px; color: #8899ae; text-transform: uppercase; letter-spacing: 0.06em;">
+                            AcaDNA — Academic Fingerprint · K-Means · XGBoost · SHAP · KNN
+                        </p>
+                        <p style="font-size: 8px; color: #b0b8c8; margin-top: 2px;">
+                            This report was generated automatically based on your responses.
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function exportPDF() {
+            if (!currentArchetype) {
+                alert('Please analyze your profile first before exporting.');
+                return;
+            }
+
+            const btn = document.querySelector('.btn-success');
+            const originalText = btn.textContent;
+            btn.textContent = '⏳ Generating report...';
+            btn.disabled = true;
+
+            try {
+                // Créer un conteneur temporaire pour le rapport
+                const reportHTML = generateReportHTML();
+                if (!reportHTML) throw new Error('Failed to generate report');
+
+                const container = document.createElement('div');
+                container.innerHTML = reportHTML;
+                container.style.position = 'fixed';
+                container.style.left = '-9999px';
+                container.style.top = '0';
+                container.style.width = '800px';
+                container.style.background = 'white';
+                container.style.zIndex = '-1';
+                document.body.appendChild(container);
+
+                // Attendre que le DOM soit prêt
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                // Capturer avec html2canvas
+                const canvas = await html2canvas(container, {
+                    scale: 2,
+                    backgroundColor: '#ffffff',
+                    allowTaint: true,
+                    useCORS: true,
+                    logging: false,
+                    width: 800,
+                    height: container.scrollHeight,
+                    windowWidth: 800,
+                    windowHeight: container.scrollHeight,
+                });
+
+                // Supprimer le conteneur temporaire
+                document.body.removeChild(container);
+
+                const imgData = canvas.toDataURL('image/png');
+                
+                // Créer le PDF
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                pdf.save('AcaDNA_Academic_Report.pdf');
+                
+                btn.textContent = '✅ Report exported!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }, 2000);
+                
+            } catch (error) {
+                console.error('PDF export error:', error);
+                alert('Error generating PDF. Please try again.');
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // ─── CHATBOT MODAL ───
+
+        function openChatModal() {
+            if (!currentArchetype) {
+                alert('Please analyze your profile first to activate the Academic Coach.');
+                return;
+            }
+            document.getElementById('chatModalOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+                document.getElementById('chatModalInput').focus();
+            }, 300);
+        }
+
+        function closeChatModal() {
+            document.getElementById('chatModalOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeChatModal();
+            }
+        });
+
+        function initChatbotModal(arch) {
+            const messages = document.getElementById('chatModalMessages');
+            messages.innerHTML = '';
+            
+            const welcomeMsg = `
+                👋 Hello! I'm your Academic Coach.
+                I see you've been identified as <strong>${arch.name}</strong>.
+                Feel free to ask me anything about your profile, study tips, or how to improve.
+            `;
+            addBotMessageModal(welcomeMsg);
+        }
+
+        function addBotMessageModal(text) {
+            const messages = document.getElementById('chatModalMessages');
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const div = document.createElement('div');
+            div.className = 'chat-message bot';
+            div.innerHTML = `
+                <div class="chat-bubble">
+                    ${text}
+                    <span class="time">${time}</span>
+                </div>
+            `;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function addUserMessageModal(text) {
+            const messages = document.getElementById('chatModalMessages');
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const div = document.createElement('div');
+            div.className = 'chat-message user';
+            div.innerHTML = `
+                <div class="chat-bubble">
+                    ${text}
+                    <span class="time">${time}</span>
+                </div>
+            `;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function sendMessageModal() {
+            const input = document.getElementById('chatModalInput');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            addUserMessageModal(text);
+            input.value = '';
+            
+            setTimeout(() => {
+                const response = getChatbotResponse(text);
+                addBotMessageModal(response);
+            }, 400);
+        }
+
+        function sendQuickReplyModal(text) {
+            addUserMessageModal(text);
+            setTimeout(() => {
+                const response = getChatbotResponse(text);
+                addBotMessageModal(response);
+            }, 400);
+        }
+
+        function getChatbotResponse(userMessage) {
+            const msg = userMessage.toLowerCase();
+            
+            if (!currentArchetype) {
+                return "Please complete the profile analysis first so I can give you personalized advice.";
+            }
+
+            const arch = currentArchetype;
+            const probas = currentProbas;
+
+            if (msg.includes('meaning') || msg.includes('mean') || msg.includes('what is') || msg.includes('explain')) {
+                return `
+                    <strong>${arch.name}</strong><br>
+                    ${arch.desc}<br><br>
+                    <strong>Key characteristics:</strong><br>
+                    • You're in the <strong>${Math.round(Math.max(...probas) * 100)}%</strong> confidence range for this archetype.<br>
+                    • This profile is based on your responses about performance, masking, procrastination, and satisfaction.<br>
+                    • Your strengths and challenges are reflected in the radar chart above.
+                `;
+            }
+
+            if (msg.includes('tips') || msg.includes('study') || msg.includes('advice') || msg.includes('recommend')) {
+                return `
+                    <strong>Personalized study tips for ${arch.name}:</strong><br><br>
+                    ${arch.recos.map((r, i) => `${i+1}. ${r}`).join('<br>')}<br><br>
+                    <strong>Additional advice:</strong><br>
+                    • Set SMART goals (Specific, Measurable, Achievable, Relevant, Time-bound)<br>
+                    • Review your progress weekly<br>
+                    • Don't hesitate to adjust your methods based on what works best for you
+                `;
+            }
+
+            if (msg.includes('improve') || msg.includes('progress') || msg.includes('better') || msg.includes('get better')) {
+                return `
+                    <strong>To improve your academic journey:</strong><br><br>
+                    <strong>1. Leverage your strengths:</strong> Identify what works well in your current approach and build on it.<br>
+                    <strong>2. Address challenges:</strong> Pick one recommendation from above and focus on it for 2 weeks.<br>
+                    <strong>3. Track progress:</strong> Keep a simple journal of what you try and what works.<br>
+                    <strong>4. Seek feedback:</strong> Regularly ask mentors or peers for input.<br><br>
+                    Remember: improvement is a journey, not a destination. Every small step counts!
+                `;
+            }
+
+            if (msg.includes('radar') || msg.includes('chart') || msg.includes('graph')) {
+                return `
+                    <strong>Understanding your radar chart:</strong><br><br>
+                    The chart shows 4 dimensions of your academic profile:<br>
+                    • <strong>Performance:</strong> How you rate your academic results<br>
+                    • <strong>Masking:</strong> How much you hide your true feelings<br>
+                    • <strong>Procrastination:</strong> Your tendency to delay tasks<br>
+                    • <strong>Satisfaction:</strong> How happy you are with your program<br><br>
+                    The blue area represents your current profile. The closer to the edge, the higher you score in that dimension.
+                `;
+            }
+
+            if (msg.includes('other') || msg.includes('compare') || msg.includes('different')) {
+                const otherArchetypes = ARCHETYPES.filter(a => a.name !== arch.name);
+                const randomOther = otherArchetypes[Math.floor(Math.random() * otherArchetypes.length)];
+                return `
+                    <strong>How ${arch.name} compares to other profiles:</strong><br><br>
+                    Your profile is <strong>${arch.name}</strong>. Here's how it differs from <strong>${randomOther.name}</strong>:<br><br>
+                    • ${arch.name} focuses on ${arch.recos[0].toLowerCase()}<br>
+                    • ${randomOther.name} typically emphasizes ${randomOther.recos[0].toLowerCase()}<br><br>
+                    Every archetype has unique strengths. Understanding yours helps you leverage them effectively.
+                `;
+            }
+
+            if (msg.includes('stress') || msg.includes('anxiety') || msg.includes('wellbeing') || msg.includes('mental') || msg.includes('health')) {
+                return `
+                    <strong>Managing stress and wellbeing:</strong><br><br>
+                    ${arch.name} profiles often face specific challenges:<br>
+                    • Prioritize regular breaks and self-care<br>
+                    • Practice mindfulness or deep breathing exercises<br>
+                    • Build a support network of trusted peers or mentors<br>
+                    • Remember: seeking help is a sign of strength, not weakness<br><br>
+                    <em>Your academic journey is important, but your wellbeing matters even more.</em>
+                `;
+            }
+
+            if (msg.includes('motivation') || msg.includes('motivate') || msg.includes('encourage') || msg.includes('inspiring')) {
+                return `
+                    <strong>Staying motivated:</strong><br><br>
+                    • Set small, achievable daily goals<br>
+                    • Celebrate your progress, no matter how small<br>
+                    • Connect with peers who inspire you<br>
+                    • Remember your long-term vision and why you started<br>
+                    • Take time to reflect on how far you've come<br><br>
+                    <em>You have the strength to overcome challenges and grow.</em>
+                `;
+            }
+
+            if (msg.includes('organize') || msg.includes('plan') || msg.includes('schedule') || msg.includes('time')) {
+                return `
+                    <strong>Time management and planning:</strong><br><br>
+                    • Use a digital or physical planner<br>
+                    • Break large tasks into smaller, manageable steps<br>
+                    • Apply the Pomodoro technique (25 min work + 5 min break)<br>
+                    • Identify your peak productivity hours and schedule accordingly<br>
+                    • Review and adjust your plan weekly<br><br>
+                    ${arch.name} profiles often benefit from structured routines.
+                `;
+            }
+
+            if (msg.includes('help') || msg.includes('what can you do') || msg.includes('about you')) {
+                return `
+                    <strong>What I can help you with:</strong><br><br>
+                    • Explain your academic archetype in detail<br>
+                    • Provide personalized study tips<br>
+                    • Suggest ways to improve your profile<br>
+                    • Explain the radar chart visualization<br>
+                    • Compare your profile to other archetypes<br>
+                    • Offer stress management techniques<br>
+                    • Help with motivation and planning<br><br>
+                    <em>Just ask me anything about your academic journey!</em>
+                `;
+            }
+
+            return `
+                <strong>That's a great question!</strong><br><br>
+                Based on your ${arch.name} profile, I'd suggest exploring these areas:<br>
+                • ${arch.recos[0]}<br>
+                • ${arch.recos[1]}<br>
+                • ${arch.recos[2]}<br><br>
+                Would you like me to elaborate on any of these? You can also ask about:<br>
+                • What your archetype means<br>
+                • Study tips<br>
+                • How to improve<br>
+                • Understanding your radar chart
+            `;
+        }
+
+        // ─── INIT ───
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('chatModalInput');
+            if (input) {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        sendMessageModal();
+                    }
+                });
+            }
+        });
+    </script>
+
 </body>
 </html>
