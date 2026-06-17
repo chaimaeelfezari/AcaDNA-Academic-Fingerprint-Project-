@@ -3,14 +3,26 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AcaDNA · Academic Fingerprint</title>
+    <title>AcaDNA · Academic Fingerprint · ML Project</title>
     
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="AcaDNA - An end-to-end machine learning system that analyzes academic behavior, detects archetypes, and evaluates program alignment." />
+    <meta name="keywords" content="machine learning, academic fingerprint, student archetype, education, ML project" />
+    <meta name="author" content="Chaimae ELFEZARI" />
+    <meta property="og:title" content="AcaDNA · Academic Fingerprint" />
+    <meta property="og:description" content="Discover your academic identity through machine learning." />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#2b6c9e" />
+    
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
     
     <!-- Librairies pour le PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
     
     <style>
         /* ─── RESET & ROOT ─── */
@@ -20,37 +32,76 @@
             --bg-body: #f4f6fa;
             --bg-white: #ffffff;
             --bg-card: #ffffff;
-            --bg-card-hover: #f8f9fc;
+            --bg-card-hover: #f0f2f6;
             --border-light: #e8ecf2;
             --border-focus: #c8d0dc;
             --shadow-soft: 0 8px 40px rgba(0, 20, 40, 0.06);
             --shadow-medium: 0 12px 48px rgba(0, 20, 40, 0.08);
             --shadow-heavy: 0 20px 60px rgba(0, 20, 40, 0.10);
+            --shadow-glow: 0 0 40px rgba(43, 108, 158, 0.08);
             --accent: #2b6c9e;
             --accent-light: #e8f0f8;
-            --accent-glow: rgba(43, 108, 158, 0.08);
+            --accent-glow: rgba(43, 108, 158, 0.12);
             --text-primary: #1a2634;
             --text-secondary: #4a5a6e;
             --text-tertiary: #8899ae;
             --text-inverse: #ffffff;
             --radius: 14px;
-            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             --chatbot-bg: #f8f9fc;
             --chatbot-user: #2b6c9e;
             --chatbot-bot: #e8ecf2;
             --nav-height: 64px;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
-        html { background: var(--bg-body); }
+        /* Mode sombre */
+        [data-theme="dark"] {
+            --bg-body: #0d1117;
+            --bg-white: #161b22;
+            --bg-card: #1c2333;
+            --bg-card-hover: #252d3f;
+            --border-light: #30363d;
+            --border-focus: #484f58;
+            --shadow-soft: 0 8px 40px rgba(0, 0, 0, 0.4);
+            --shadow-medium: 0 12px 48px rgba(0, 0, 0, 0.5);
+            --shadow-heavy: 0 20px 60px rgba(0, 0, 0, 0.6);
+            --shadow-glow: 0 0 40px rgba(43, 108, 158, 0.06);
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --text-tertiary: #484f58;
+            --text-inverse: #0d1117;
+            --accent-light: rgba(43, 108, 158, 0.15);
+            --chatbot-bg: #252d3f;
+            --chatbot-bot: #30363d;
+            --chatbot-user: #2b6c9e;
+        }
+
+        html { 
+            background: var(--bg-body); 
+            scroll-behavior: smooth;
+        }
         body {
             background: var(--bg-body);
             color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font);
             overflow-x: hidden;
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
             padding-top: var(--nav-height);
+            transition: background var(--transition-slow), color var(--transition-slow);
         }
+
+        /* ─── SCROLLBAR PERSONNALISÉE ─── */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-body); }
+        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 99px; }
+        ::-webkit-scrollbar-thumb:hover { background: #1f5a85; }
+
+        /* ─── SELECTION ─── */
+        ::selection { background: var(--accent); color: #fff; }
 
         /* ─── REEL BACKGROUND ─── */
         .reel-background {
@@ -62,6 +113,7 @@
             z-index: 0;
             overflow: hidden;
             background: var(--bg-body);
+            transition: background var(--transition-slow);
         }
 
         .reel-track {
@@ -73,6 +125,7 @@
             transform: translateY(-50%);
             animation: scrollReels 50s linear infinite;
             width: max-content;
+            will-change: transform;
         }
 
         .reel-track:nth-child(2) {
@@ -88,7 +141,7 @@
             animation-delay: -28s;
             top: 90%;
             transform: translateY(0);
-            opacity: 0.2;
+            opacity: 0.15;
         }
 
         .reel-item {
@@ -99,9 +152,10 @@
             flex-shrink: 0;
             position: relative;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid var(--border-light);
             transition: var(--transition);
             filter: saturate(0.9) contrast(1.05) brightness(1.02);
+            will-change: transform, filter;
         }
 
         .reel-item img {
@@ -114,7 +168,7 @@
 
         .reel-item:hover {
             filter: saturate(1.1) contrast(1.1) brightness(1.05);
-            transform: scale(1.03);
+            transform: scale(1.04) rotate(0.5deg);
             border-color: var(--accent);
             box-shadow: 0 16px 48px rgba(43, 108, 158, 0.10);
             z-index: 10;
@@ -159,6 +213,7 @@
             z-index: 1;
             pointer-events: none;
             opacity: 0.10;
+            transition: opacity var(--transition-slow);
         }
 
         /* ─── OVERLAY ─── */
@@ -169,10 +224,15 @@
             width: 100%;
             height: 100%;
             z-index: 2;
-            background: radial-gradient(ellipse at center, rgba(244, 246, 250, 0.2), rgba(244, 246, 250, 0.7));
+            background: radial-gradient(ellipse at center, rgba(244, 246, 250, 0.15), rgba(244, 246, 250, 0.7));
             backdrop-filter: blur(3px);
             -webkit-backdrop-filter: blur(3px);
             pointer-events: none;
+            transition: background var(--transition-slow);
+        }
+
+        [data-theme="dark"] .overlay-light {
+            background: radial-gradient(ellipse at center, rgba(13, 17, 23, 0.2), rgba(13, 17, 23, 0.8));
         }
 
         /* ─── NAVIGATION ─── */
@@ -184,29 +244,47 @@
             z-index: 100;
             height: var(--nav-height);
             background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(16px) saturate(1.4);
+            -webkit-backdrop-filter: blur(16px) saturate(1.4);
             border-bottom: 1px solid var(--border-light);
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 2rem;
             box-shadow: 0 2px 20px rgba(0, 0, 0, 0.04);
+            transition: background var(--transition-slow), border-color var(--transition-slow), box-shadow var(--transition-slow);
+        }
+
+        [data-theme="dark"] .main-nav {
+            background: rgba(22, 27, 34, 0.9);
+            border-bottom-color: var(--border-light);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
         }
 
         .main-nav .logo {
-            font-weight: 700;
-            font-size: 1.1rem;
+            font-weight: 800;
+            font-size: 1.2rem;
             color: var(--text-primary);
             letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         .main-nav .logo span {
             color: var(--accent);
         }
+        .main-nav .logo .dot-logo {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: inline-block;
+            animation: pulse-dot 2s infinite;
+        }
 
         .main-nav .nav-links {
             display: flex;
-            gap: 4px;
+            gap: 2px;
             list-style: none;
             align-items: center;
         }
@@ -216,28 +294,73 @@
             border: none;
             background: transparent;
             border-radius: 8px;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font);
             font-size: 13px;
             font-weight: 500;
             color: var(--text-secondary);
             cursor: pointer;
             transition: var(--transition);
+            position: relative;
+        }
+        .main-nav .nav-links li button::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: var(--transition);
+            transform: translateX(-50%);
+            border-radius: 99px;
+        }
+        .main-nav .nav-links li button:hover::after,
+        .main-nav .nav-links li button.active::after {
+            width: 60%;
         }
         .main-nav .nav-links li button:hover {
-            background: var(--accent-light);
-            color: var(--accent);
+            color: var(--text-primary);
+            background: var(--bg-card-hover);
         }
         .main-nav .nav-links li button.active {
-            background: var(--accent);
-            color: #fff;
-            box-shadow: 0 4px 12px rgba(43, 108, 158, 0.15);
+            color: var(--accent);
+            background: var(--accent-light);
         }
+
+        .main-nav .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Toggle mode sombre/clair */
+        .theme-toggle {
+            background: var(--bg-card-hover);
+            border: 1px solid var(--border-light);
+            border-radius: 999px;
+            padding: 4px 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: var(--transition);
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        .theme-toggle:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+        .theme-toggle .icon-dark { display: none; }
+        .theme-toggle .icon-light { display: inline-block; }
+        [data-theme="dark"] .theme-toggle .icon-dark { display: inline-block; }
+        [data-theme="dark"] .theme-toggle .icon-light { display: none; }
 
         .btn-chat-nav {
             padding: 0.5rem 1.2rem;
             border: none;
             border-radius: 8px;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font);
             font-size: 13px;
             font-weight: 500;
             cursor: pointer;
@@ -252,6 +375,7 @@
             background: var(--accent);
             color: #fff;
             transform: translateY(-1px);
+            box-shadow: 0 4px 16px var(--accent-glow);
         }
         .btn-chat-nav .badge {
             background: var(--accent);
@@ -260,6 +384,7 @@
             padding: 2px 6px;
             border-radius: 999px;
             font-weight: 700;
+            animation: pulse-badge 2s infinite;
         }
         .btn-chat-nav:hover .badge {
             background: #fff;
@@ -267,6 +392,11 @@
         }
         .btn-chat-nav.show {
             display: inline-flex;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
 
         /* ─── LAYOUT ─── */
@@ -282,10 +412,15 @@
         /* ─── PAGES ─── */
         .page {
             display: none;
-            animation: fadeUp 0.4s ease;
+            animation: fadeUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .page.active {
             display: block;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         /* ─── CARD ─── */
@@ -294,7 +429,7 @@
             border: 1px solid var(--border-light);
             border-radius: var(--radius);
             box-shadow: var(--shadow-soft);
-            transition: var(--transition);
+            transition: all var(--transition);
         }
         .card:hover {
             box-shadow: var(--shadow-medium);
@@ -319,6 +454,7 @@
             letter-spacing: 0.12em;
             text-transform: uppercase;
             margin-bottom: 1.5rem;
+            transition: all var(--transition);
         }
 
         .hero h1 {
@@ -330,10 +466,17 @@
             color: var(--text-primary);
         }
         .hero h1 .gradient {
-            background: linear-gradient(135deg, #2b6c9e 0%, #4a8ab5 40%, #2b6c9e 100%);
+            background: linear-gradient(135deg, #2b6c9e 0%, #4a8ab5 30%, #6c9bc4 60%, #2b6c9e 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            background-size: 200% 200%;
+            animation: gradientShift 6s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
 
         .hero-sub {
@@ -347,22 +490,40 @@
 
         .hero-cta {
             display: inline-block;
-            padding: 0.8rem 2.5rem;
+            padding: 0.85rem 2.8rem;
             background: var(--accent);
             border: none;
             border-radius: 11px;
             color: #fff;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font);
             font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all var(--transition);
             text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transition: 0.6s;
+        }
+        .hero-cta:hover::before {
+            left: 100%;
         }
         .hero-cta:hover {
             background: #1f5a85;
-            transform: translateY(-2px);
-            box-shadow: 0 12px 32px rgba(43, 108, 158, 0.20);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(43, 108, 158, 0.25);
+        }
+        .hero-cta:active {
+            transform: scale(0.97);
         }
 
         /* ─── STATS ─── */
@@ -379,13 +540,30 @@
             border-radius: 12px;
             padding: 1.2rem 0.6rem;
             text-align: center;
-            transition: var(--transition);
+            transition: all var(--transition);
             box-shadow: var(--shadow-soft);
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), var(--accent-glow), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s;
+            pointer-events: none;
+        }
+        .stat-card:hover::before {
+            opacity: 1;
         }
         .stat-card:hover {
             border-color: var(--accent);
             box-shadow: var(--shadow-medium);
-            transform: translateY(-2px);
+            transform: translateY(-3px);
         }
 
         .stat-number {
@@ -413,6 +591,7 @@
             border: 1px solid var(--border-light);
             border-radius: var(--radius);
             box-shadow: var(--shadow-soft);
+            transition: all var(--transition);
         }
         .form-section:hover {
             box-shadow: var(--shadow-medium);
@@ -463,11 +642,11 @@
             border: 1px solid var(--border-light);
             border-radius: 10px;
             color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font);
             font-size: 13px;
             padding: 10px 14px;
             outline: none;
-            transition: var(--transition);
+            transition: all var(--transition);
             appearance: none;
             -webkit-appearance: none;
         }
@@ -482,6 +661,7 @@
         .form-group select:hover {
             border-color: var(--accent);
             background-color: var(--accent-light);
+            box-shadow: 0 0 0 3px var(--accent-glow);
         }
         .form-group select option {
             background: var(--bg-white);
@@ -492,23 +672,25 @@
             padding: 5px 0;
             cursor: pointer;
             accent-color: var(--accent);
-            height: 3px;
+            height: 4px;
             background: var(--border-light);
             border: none;
+            border-radius: 99px;
         }
         .form-group input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             background: var(--accent);
             border-radius: 50%;
             cursor: pointer;
-            box-shadow: 0 0 20px rgba(43, 108, 158, 0.15);
-            transition: var(--transition);
+            box-shadow: 0 0 20px rgba(43, 108, 158, 0.2);
+            transition: all var(--transition);
             border: 2px solid var(--bg-white);
         }
         .form-group input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.1);
+            transform: scale(1.12);
+            box-shadow: 0 0 30px rgba(43, 108, 158, 0.3);
         }
 
         .range-row {
@@ -533,11 +715,11 @@
             border: none;
             border-radius: 11px;
             color: var(--text-inverse);
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font);
             font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all var(--transition);
             letter-spacing: 0.02em;
             position: relative;
             overflow: hidden;
@@ -549,7 +731,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
             transition: 0.6s;
         }
         .btn-primary:hover::after {
@@ -558,16 +740,20 @@
         .btn-primary:hover {
             background: #1f5a85;
             transform: translateY(-2px);
-            box-shadow: 0 12px 32px rgba(43, 108, 158, 0.20);
+            box-shadow: 0 12px 40px rgba(43, 108, 158, 0.25);
         }
         .btn-primary:active {
-            transform: scale(0.98);
+            transform: scale(0.97);
+        }
+        .btn-primary:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
         }
 
         /* ─── PAGE: RESULTS ─── */
         .result-section {
             display: none;
-            animation: fadeUp 0.6s ease;
+            animation: fadeUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .result-section.show { display: block; }
 
@@ -581,16 +767,21 @@
             box-shadow: var(--shadow-soft);
             position: relative;
             overflow: hidden;
+            transition: all var(--transition);
         }
-        .archetype-card::after {
+        .archetype-card::before {
             content: '';
             position: absolute;
-            top: -60px;
-            right: -60px;
+            top: -50%;
+            right: -30%;
             width: 200px;
             height: 200px;
-            background: radial-gradient(circle, rgba(43, 108, 158, 0.03), transparent 70%);
+            background: radial-gradient(circle, var(--accent-glow), transparent 70%);
             pointer-events: none;
+            opacity: 0.3;
+        }
+        .archetype-card:hover {
+            box-shadow: var(--shadow-medium);
         }
 
         .archetype-name {
@@ -626,6 +817,16 @@
             border: 1px solid #f5d4c4;
             color: #b8663a;
         }
+        [data-theme="dark"] .badge-success {
+            background: rgba(26, 122, 90, 0.2);
+            border-color: rgba(26, 122, 90, 0.3);
+            color: #55c7a6;
+        }
+        [data-theme="dark"] .badge-warning {
+            background: rgba(184, 102, 58, 0.2);
+            border-color: rgba(184, 102, 58, 0.3);
+            color: #e8a87a;
+        }
 
         /* ─── PROBA ─── */
         .proba-section {
@@ -635,6 +836,10 @@
             padding: 1.8rem 2rem;
             margin-bottom: 1.5rem;
             box-shadow: var(--shadow-soft);
+            transition: all var(--transition);
+        }
+        .proba-section:hover {
+            box-shadow: var(--shadow-medium);
         }
 
         .proba-section h3 {
@@ -689,6 +894,7 @@
             max-width: 100%;
             border-radius: 10px;
             background: var(--bg-body);
+            transition: background var(--transition-slow);
         }
 
         /* ─── RECOS ─── */
@@ -704,13 +910,13 @@
             border-radius: 12px;
             padding: 1.2rem 1rem;
             text-align: center;
-            transition: var(--transition);
+            transition: all var(--transition);
             box-shadow: var(--shadow-soft);
         }
         .reco-card:hover {
             border-color: var(--accent);
             box-shadow: var(--shadow-medium);
-            transform: translateY(-2px);
+            transform: translateY(-3px) scale(1.01);
         }
         .reco-number {
             font-size: 9px;
@@ -739,11 +945,11 @@
         .btn-secondary {
             padding: 0.7rem 1.8rem;
             border-radius: 10px;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font);
             font-size: 12px;
             font-weight: 500;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all var(--transition);
             border: 1px solid var(--border-light);
             background: var(--bg-white);
             color: var(--text-secondary);
@@ -752,16 +958,21 @@
             border-color: var(--accent);
             color: var(--accent);
             background: var(--accent-light);
+            transform: translateY(-2px);
+        }
+        .btn-secondary:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
         }
 
         .btn-success {
             padding: 0.7rem 1.8rem;
             border-radius: 10px;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font);
             font-size: 12px;
             font-weight: 500;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all var(--transition);
             border: none;
             background: #e6f4ee;
             color: #1a7a5a;
@@ -772,15 +983,23 @@
             border-color: #8cc0ae;
             transform: translateY(-2px);
         }
+        [data-theme="dark"] .btn-success {
+            background: rgba(26, 122, 90, 0.15);
+            border-color: rgba(26, 122, 90, 0.2);
+            color: #55c7a6;
+        }
+        [data-theme="dark"] .btn-success:hover {
+            background: rgba(26, 122, 90, 0.25);
+        }
 
         .btn-chat {
             padding: 0.7rem 1.8rem;
             border-radius: 10px;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font);
             font-size: 12px;
             font-weight: 500;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all var(--transition);
             border: none;
             background: var(--accent-light);
             color: var(--accent);
@@ -793,10 +1012,14 @@
             background: var(--accent);
             color: #fff;
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(43, 108, 158, 0.15);
+            box-shadow: 0 8px 24px var(--accent-glow);
         }
         .btn-chat .icon {
             font-size: 1.1rem;
+        }
+        .btn-chat:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
         }
 
         /* ─── CHATBOT MODAL ─── */
@@ -807,9 +1030,9 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.35);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             z-index: 200;
             align-items: center;
             justify-content: center;
@@ -817,6 +1040,11 @@
         }
         .chat-modal-overlay.active {
             display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .chat-modal {
@@ -827,9 +1055,19 @@
             max-height: 85vh;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.2);
-            animation: slideUp 0.3s ease;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.25);
+            animation: slideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
+        }
+
+        [data-theme="dark"] .chat-modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .chat-modal-header {
@@ -840,6 +1078,9 @@
             border-bottom: 1px solid var(--border-light);
             background: var(--bg-white);
             flex-shrink: 0;
+        }
+        [data-theme="dark"] .chat-modal-header {
+            background: var(--bg-card);
         }
         .chat-modal-header h3 {
             font-size: 15px;
@@ -870,13 +1111,13 @@
             font-size: 1.5rem;
             color: var(--text-tertiary);
             cursor: pointer;
-            transition: var(--transition);
+            transition: all var(--transition);
             padding: 0 4px;
             line-height: 1;
         }
         .btn-close-modal:hover {
             color: var(--text-primary);
-            transform: rotate(90deg);
+            transform: rotate(90deg) scale(1.1);
         }
 
         .chat-modal-body {
@@ -921,13 +1162,14 @@
             color: var(--text-secondary);
             background: var(--bg-body);
             cursor: pointer;
-            transition: var(--transition);
-            font-family: 'Inter', sans-serif;
+            transition: all var(--transition);
+            font-family: var(--font);
         }
         .chat-modal-body .quick-reply:hover {
             border-color: var(--accent);
             color: var(--accent);
             background: var(--accent-light);
+            transform: translateY(-1px);
         }
 
         .chat-modal-body .chatbot-input {
@@ -941,16 +1183,16 @@
             padding: 10px 14px;
             border: 1px solid var(--border-light);
             border-radius: 10px;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font);
             font-size: 13px;
             background: var(--bg-body);
             color: var(--text-primary);
             outline: none;
-            transition: var(--transition);
+            transition: all var(--transition);
         }
         .chat-modal-body .chatbot-input input:focus {
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(43, 108, 158, 0.08);
+            box-shadow: 0 0 0 3px var(--accent-glow);
         }
         .chat-modal-body .chatbot-input input::placeholder {
             color: var(--text-tertiary);
@@ -962,16 +1204,17 @@
             border: none;
             border-radius: 10px;
             color: #fff;
-            font-family: 'Inter', sans-serif;
+            font-family: var(--font);
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all var(--transition);
             white-space: nowrap;
         }
         .chat-modal-body .chatbot-input .btn-send:hover {
             background: #1f5a85;
             transform: translateY(-1px);
+            box-shadow: 0 4px 16px var(--accent-glow);
         }
 
         .chat-modal-body .chat-message {
@@ -1044,6 +1287,12 @@
             padding: 1.2rem;
             border-radius: 12px;
             border: 1px solid var(--border-light);
+            transition: all var(--transition);
+        }
+        .about-item:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-soft);
         }
         .about-item h4 {
             font-size: 13px;
@@ -1062,6 +1311,7 @@
             padding: 2rem 0 0.5rem;
             border-top: 1px solid var(--border-light);
             margin-top: 3rem;
+            transition: border-color var(--transition-slow);
         }
         .footer p {
             font-size: 10px;
@@ -1076,21 +1326,22 @@
         }
 
         /* ─── ANIMATIONS ─── */
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px) scale(0.97); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
         @keyframes pulse-dot {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.3; transform: scale(0.7); }
+        }
+
+        /* ─── SKELETON LOADING ─── */
+        .skeleton {
+            background: linear-gradient(90deg, var(--border-light) 25%, var(--bg-card-hover) 50%, var(--border-light) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
         }
 
         /* ─── RESPONSIVE ─── */
@@ -1137,6 +1388,26 @@
             .chat-modal-body .quick-replies { gap: 4px; }
             .chat-modal-body .quick-reply { font-size: 10px; padding: 4px 10px; }
         }
+
+        /* ─── FOCUS VISIBLE (accessibilité) ─── */
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        /* ─── REDUCED MOTION ─── */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1149,33 +1420,42 @@
     </div>
 
     <!-- ─── THREE.JS ─── -->
-    <canvas id="three-canvas"></canvas>
+    <canvas id="three-canvas" aria-hidden="true"></canvas>
 
     <!-- ─── OVERLAY ─── -->
-    <div class="overlay-light"></div>
+    <div class="overlay-light" aria-hidden="true"></div>
 
     <!-- ─── NAVIGATION ─── -->
-    <nav class="main-nav">
-        <div class="logo">Aca<span>DNA</span></div>
-        <ul class="nav-links">
-            <li><button class="active" onclick="navigateTo('home')">Home</button></li>
-            <li><button onclick="navigateTo('analyze')">Analyze</button></li>
-            <li><button onclick="navigateTo('results')" id="navResults" style="display:none;">Results</button></li>
-            <li><button onclick="navigateTo('about')">About</button></li>
-            <li>
-                <button class="btn-chat-nav" onclick="openChatModal()" id="navChat">
+    <nav class="main-nav" role="navigation" aria-label="Main navigation">
+        <div class="logo">
+            <span class="dot-logo" aria-hidden="true"></span>
+            Aca<span>DNA</span>
+        </div>
+        <ul class="nav-links" role="menubar">
+            <li role="none"><button role="menuitem" class="active" onclick="navigateTo('home')" aria-current="page">Home</button></li>
+            <li role="none"><button role="menuitem" onclick="navigateTo('analyze')">Analyze</button></li>
+            <li role="none"><button role="menuitem" onclick="navigateTo('results')" id="navResults" style="display:none;">Results</button></li>
+            <li role="none"><button role="menuitem" onclick="navigateTo('about')">About</button></li>
+            <li role="none">
+                <button class="btn-chat-nav" onclick="openChatModal()" id="navChat" aria-label="Open academic coach chat">
                     💬 Coach
-                    <span class="badge">New</span>
+                    <span class="badge" aria-hidden="true">New</span>
                 </button>
             </li>
         </ul>
+        <div class="nav-actions">
+            <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+                <span class="icon-light" aria-hidden="true">☀️</span>
+                <span class="icon-dark" aria-hidden="true">🌙</span>
+            </button>
+        </div>
     </nav>
 
     <!-- ─── APP ─── -->
-    <div class="app">
+    <div class="app" role="main">
 
         <!-- ═══ PAGE: HOME ═══ -->
-        <div class="page active" id="page-home">
+        <section class="page active" id="page-home" role="tabpanel" aria-label="Home">
             <div class="hero">
                 <div class="hero-badge">Academic Fingerprint · ML Project</div>
                 <h1>
@@ -1186,150 +1466,155 @@
                     An end-to-end machine learning system that analyzes your academic behavior,
                     detects archetypes, and evaluates program alignment.
                 </p>
-                <button class="hero-cta" onclick="navigateTo('analyze')">Start Analysis →</button>
+                <button class="hero-cta" onclick="navigateTo('analyze')" aria-label="Start analysis">
+                    Start Analysis
+                    <span aria-hidden="true">→</span>
+                </button>
             </div>
 
-            <div class="stats-grid">
-                <div class="stat-card">
+            <div class="stats-grid" role="list">
+                <div class="stat-card" role="listitem">
                     <div class="stat-number">300<span class="accent">+</span></div>
                     <div class="stat-label">Students</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" role="listitem">
                     <div class="stat-number">87<span class="accent">%</span></div>
                     <div class="stat-label">Accuracy</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" role="listitem">
                     <div class="stat-number">5</div>
                     <div class="stat-label">Archetypes</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" role="listitem">
                     <div class="stat-number">4</div>
                     <div class="stat-label">ML Pipelines</div>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- ═══ PAGE: ANALYZE ═══ -->
-        <div class="page" id="page-analyze">
+        <section class="page" id="page-analyze" role="tabpanel" aria-label="Analyze">
             <div class="form-section">
                 <div class="form-header">
                     <h2>Profile Analysis</h2>
                     <p>Complete the questionnaire — the model processes your fingerprint in real time</p>
                 </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Academic Performance (1–5)</label>
-                        <div class="range-row">
-                            <input type="range" min="1" max="5" value="3" id="q1" oninput="document.getElementById('q1v').textContent=this.value" />
-                            <span class="range-val" id="q1v">3</span>
+                <form id="analysisForm" onsubmit="event.preventDefault(); analyzeProfile();" aria-label="Academic profile questionnaire">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="q1">Academic Performance (1–5)</label>
+                            <div class="range-row">
+                                <input type="range" min="1" max="5" value="3" id="q1" oninput="document.getElementById('q1v').textContent=this.value" aria-valuenow="3" aria-valuemin="1" aria-valuemax="5" />
+                                <span class="range-val" id="q1v" aria-live="polite">3</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="q11">Program Satisfaction (1–5)</label>
+                            <div class="range-row">
+                                <input type="range" min="1" max="5" value="3" id="q11" oninput="document.getElementById('q11v').textContent=this.value" aria-valuenow="3" aria-valuemin="1" aria-valuemax="5" />
+                                <span class="range-val" id="q11v" aria-live="polite">3</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="q2">Do you hide your stress?</label>
+                            <select id="q2">
+                                <option value="0">Never</option>
+                                <option value="1">Rarely</option>
+                                <option value="2" selected>Sometimes</option>
+                                <option value="3">Often</option>
+                                <option value="4">Always</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="q14">Do you pretend to be fine?</label>
+                            <select id="q14">
+                                <option value="0">Never</option>
+                                <option value="1">Rarely</option>
+                                <option value="2" selected>Sometimes</option>
+                                <option value="3">Often</option>
+                                <option value="4">Always</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="q27">Do you procrastinate?</label>
+                            <select id="q27">
+                                <option value="0">Never</option>
+                                <option value="1">Rarely</option>
+                                <option value="2" selected>Sometimes</option>
+                                <option value="3">Often</option>
+                                <option value="4">Always</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="q36">Considered changing program?</label>
+                            <select id="q36">
+                                <option value="0">No</option>
+                                <option value="1">Not sure</option>
+                                <option value="2">Yes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="q17">Do you act differently from how you feel?</label>
+                            <select id="q17">
+                                <option value="0">Never</option>
+                                <option value="1">Rarely</option>
+                                <option value="2" selected>Sometimes</option>
+                                <option value="3">Often</option>
+                                <option value="4">Always</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="q28">Relationship with deadlines</label>
+                            <select id="q28">
+                                <option value="0">Plan well in advance</option>
+                                <option value="1">Start early but procrastinate</option>
+                                <option value="2" selected>Meet them at the last minute</option>
+                                <option value="3">Pressure motivates me</option>
+                                <option value="4">Often miss them</option>
+                            </select>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label>Program Satisfaction (1–5)</label>
-                        <div class="range-row">
-                            <input type="range" min="1" max="5" value="3" id="q11" oninput="document.getElementById('q11v').textContent=this.value" />
-                            <span class="range-val" id="q11v">3</span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Do you hide your stress?</label>
-                        <select id="q2">
-                            <option value="0">Never</option>
-                            <option value="1">Rarely</option>
-                            <option value="2" selected>Sometimes</option>
-                            <option value="3">Often</option>
-                            <option value="4">Always</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Do you pretend to be fine?</label>
-                        <select id="q14">
-                            <option value="0">Never</option>
-                            <option value="1">Rarely</option>
-                            <option value="2" selected>Sometimes</option>
-                            <option value="3">Often</option>
-                            <option value="4">Always</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Do you procrastinate?</label>
-                        <select id="q27">
-                            <option value="0">Never</option>
-                            <option value="1">Rarely</option>
-                            <option value="2" selected>Sometimes</option>
-                            <option value="3">Often</option>
-                            <option value="4">Always</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Considered changing program?</label>
-                        <select id="q36">
-                            <option value="0">No</option>
-                            <option value="1">Not sure</option>
-                            <option value="2">Yes</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Do you act differently from how you feel?</label>
-                        <select id="q17">
-                            <option value="0">Never</option>
-                            <option value="1">Rarely</option>
-                            <option value="2" selected>Sometimes</option>
-                            <option value="3">Often</option>
-                            <option value="4">Always</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Relationship with deadlines</label>
-                        <select id="q28">
-                            <option value="0">Plan well in advance</option>
-                            <option value="1">Start early but procrastinate</option>
-                            <option value="2" selected>Meet them at the last minute</option>
-                            <option value="3">Pressure motivates me</option>
-                            <option value="4">Often miss them</option>
-                        </select>
-                    </div>
-                </div>
-                <button class="btn-primary" onclick="analyzeProfile()">
-                    Analyze academic fingerprint
-                </button>
+                    <button type="submit" class="btn-primary">
+                        Analyze academic fingerprint
+                    </button>
+                </form>
             </div>
-        </div>
+        </section>
 
         <!-- ═══ PAGE: RESULTS ═══ -->
-        <div class="page" id="page-results">
+        <section class="page" id="page-results" role="tabpanel" aria-label="Results">
             <div class="result-section show" id="resultSection">
                 <div class="archetype-card">
-                    <div class="archetype-name" id="resName">—</div>
-                    <div class="archetype-desc" id="resDesc">—</div>
-                    <div class="badge-status" id="resBadge"></div>
+                    <div class="archetype-name" id="resName" aria-live="polite">—</div>
+                    <div class="archetype-desc" id="resDesc" aria-live="polite">—</div>
+                    <div class="badge-status" id="resBadge" aria-live="polite"></div>
                 </div>
 
                 <div class="proba-section">
                     <h3>Academic fingerprint profile</h3>
-                    <canvas id="radarChart" width="500" height="380"></canvas>
+                    <canvas id="radarChart" width="500" height="380" role="img" aria-label="Radar chart showing academic fingerprint dimensions"></canvas>
                 </div>
 
                 <div class="proba-section">
                     <h3>Model confidence distribution</h3>
-                    <div id="probaRows"></div>
+                    <div id="probaRows" role="list" aria-label="Confidence distribution by archetype"></div>
                 </div>
 
-                <div class="reco-grid" id="recoGrid"></div>
+                <div class="reco-grid" id="recoGrid" role="list" aria-label="Personalized recommendations"></div>
 
                 <!-- ─── BOUTONS D'ACTION ─── -->
                 <div class="result-actions">
-                    <button class="btn-success" onclick="exportPDF()">📄 Export report (PDF)</button>
-                    <button class="btn-chat" onclick="openChatModal()">
-                        <span class="icon">💬</span> Ask Academic Coach
+                    <button class="btn-success" onclick="exportPDF()" aria-label="Export report as PDF">📄 Export report (PDF)</button>
+                    <button class="btn-chat" onclick="openChatModal()" aria-label="Open academic coach chat">
+                        <span class="icon" aria-hidden="true">💬</span> Ask Academic Coach
                     </button>
-                    <button class="btn-secondary" onclick="resetForm()">🔄 New analysis</button>
+                    <button class="btn-secondary" onclick="resetForm()" aria-label="Start a new analysis">🔄 New analysis</button>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- ═══ PAGE: ABOUT ═══ -->
-        <div class="page" id="page-about">
+        <section class="page" id="page-about" role="tabpanel" aria-label="About">
             <div class="about-section">
                 <h2>About AcaDNA</h2>
                 <p>
@@ -1339,20 +1624,20 @@
                     personalized academic insights.
                 </p>
                 
-                <div class="about-grid">
-                    <div class="about-item">
+                <div class="about-grid" role="list">
+                    <div class="about-item" role="listitem">
                         <h4>🧬 K-Means Clustering</h4>
                         <p>Identifies 5 distinct student archetypes with 87% silhouette score</p>
                     </div>
-                    <div class="about-item">
+                    <div class="about-item" role="listitem">
                         <h4>📊 XGBoost + SHAP</h4>
                         <p>Explains cluster characteristics with interpretable features</p>
                     </div>
-                    <div class="about-item">
+                    <div class="about-item" role="listitem">
                         <h4>🎯 KNN Classification</h4>
                         <p>Predicts program alignment with 87% accuracy</p>
                     </div>
-                    <div class="about-item">
+                    <div class="about-item" role="listitem">
                         <h4>🤖 Interactive Coach</h4>
                         <p>AI-powered chatbot for personalized academic guidance</p>
                     </div>
@@ -1364,37 +1649,37 @@
                     </p>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- FOOTER -->
-        <div class="footer">
+        <footer class="footer" role="contentinfo">
             <p>
                 AcaDNA — <span class="highlight">Academic Fingerprint</span> ·
                 K-Means · XGBoost · SHAP · KNN
             </p>
-        </div>
+        </footer>
 
     </div>
 
     <!-- ─── CHATBOT MODAL ─── -->
-    <div class="chat-modal-overlay" id="chatModalOverlay" onclick="if(event.target===this) closeChatModal()">
+    <div class="chat-modal-overlay" id="chatModalOverlay" onclick="if(event.target===this) closeChatModal()" role="dialog" aria-modal="true" aria-label="Academic Coach chat">
         <div class="chat-modal">
             <div class="chat-modal-header">
                 <h3>💬 Academic Coach</h3>
                 <div style="display:flex;align-items:center;gap:12px;">
                     <div class="status">
-                        <span class="dot"></span>
+                        <span class="dot" aria-hidden="true"></span>
                         <span>Online</span>
                     </div>
-                    <button class="btn-close-modal" onclick="closeChatModal()">✕</button>
+                    <button class="btn-close-modal" onclick="closeChatModal()" aria-label="Close chat">✕</button>
                 </div>
             </div>
             <div class="chat-modal-body">
-                <div class="chatbot-messages" id="chatModalMessages">
+                <div class="chatbot-messages" id="chatModalMessages" role="log" aria-live="polite">
                     <!-- Messages apparaissent ici -->
                 </div>
 
-                <div class="quick-replies" id="quickRepliesModal">
+                <div class="quick-replies" id="quickRepliesModal" role="group" aria-label="Quick questions">
                     <button class="quick-reply" onclick="sendQuickReplyModal('What does my archetype mean?')">
                         What does my archetype mean?
                     </button>
@@ -1410,8 +1695,8 @@
                 </div>
 
                 <div class="chatbot-input">
-                    <input type="text" id="chatModalInput" placeholder="Ask me anything about your profile..." onkeypress="if(event.key==='Enter') sendMessageModal()" />
-                    <button class="btn-send" onclick="sendMessageModal()">Send</button>
+                    <input type="text" id="chatModalInput" placeholder="Ask me anything about your profile..." onkeypress="if(event.key==='Enter') sendMessageModal()" aria-label="Chat input" />
+                    <button class="btn-send" onclick="sendMessageModal()" aria-label="Send message">Send</button>
                 </div>
             </div>
         </div>
@@ -1467,6 +1752,8 @@
     <script>
         (function initThree() {
             const canvas = document.getElementById('three-canvas');
+            if (!canvas) return;
+            
             const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1488,7 +1775,7 @@
             const group = new THREE.Group();
             const colors = [0x2b6c9e, 0x4a8ab5, 0x2b6c9e, 0x4a8ab5, 0x2b6c9e];
             const spheres = [];
-            const numSpheres = 35;
+            const numSpheres = 30;
             const radius = 2.0;
             const height = 4.5;
 
@@ -1536,7 +1823,7 @@
             scene.add(group);
 
             const particleGeo = new THREE.BufferGeometry();
-            const particleCount = 150;
+            const particleCount = 120;
             const positions = new Float32Array(particleCount * 3);
             for (let i = 0; i < particleCount * 3; i++) {
                 positions[i] = (Math.random() - 0.5) * 20;
@@ -1578,6 +1865,25 @@
             }
             animate();
         })();
+    </script>
+
+    <!-- ─── THEME TOGGLE ─── -->
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Charger le thème sauvegardé
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            }
+        });
     </script>
 
     <!-- ─── ARCHETYPES ─── -->
@@ -1716,7 +2022,7 @@
             ctx.fillStyle = color + '18';
             ctx.fill();
             ctx.strokeStyle = color;
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.5;
             ctx.stroke();
 
             for (let i = 0; i < n; i++) {
@@ -1724,7 +2030,7 @@
                 const r = radius * values[i];
                 const x = cx + r * Math.cos(ang), y = cy + r * Math.sin(ang);
                 ctx.beginPath();
-                ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+                ctx.arc(x, y, 4, 0, Math.PI * 2);
                 ctx.fillStyle = color;
                 ctx.fill();
             }
@@ -1759,7 +2065,7 @@
             ARCHETYPES.forEach((a, i) => {
                 const pct = Math.round(proba[i] * 100);
                 rows.innerHTML += `
-                    <div class="proba-row">
+                    <div class="proba-row" role="listitem">
                         <span class="proba-label">${a.name}</span>
                         <div class="proba-bar-bg">
                             <div class="proba-bar-fill" style="width:0%;background:${colors[i]}" data-w="${pct}%"></div>
@@ -1775,7 +2081,7 @@
 
             const reco = document.getElementById('recoGrid');
             reco.innerHTML = arch.recos.map((r, idx) =>
-                `<div class="reco-card">
+                `<div class="reco-card" role="listitem">
                     <div class="reco-number">Recommendation ${idx + 1}</div>
                     <div class="reco-text">${r}</div>
                 </div>`
@@ -1811,15 +2117,11 @@
             const probas = currentProbas;
             const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
-            // Créer le radar en image
             const radarCanvas = document.getElementById('radarChart');
             const radarDataUrl = radarCanvas.toDataURL('image/png');
 
-            // Construire le HTML du rapport
             return `
                 <div style="font-family: 'Inter', Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px; color: #1a2634; background: white;">
-                    
-                    <!-- En-tête -->
                     <div style="text-align: center; border-bottom: 3px solid #2b6c9e; padding-bottom: 20px; margin-bottom: 30px;">
                         <h1 style="font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin: 0; color: #1a2634;">
                             Aca<span style="color: #2b6c9e;">DNA</span>
@@ -1832,7 +2134,6 @@
                         </p>
                     </div>
 
-                    <!-- Profil -->
                     <div style="text-align: center; margin-bottom: 30px;">
                         <h2 style="font-size: 24px; font-weight: 700; color: ${arch.color}; margin-bottom: 4px;">
                             ${arch.name}
@@ -1845,7 +2146,6 @@
                         </div>
                     </div>
 
-                    <!-- Radar + Scores -->
                     <div style="display: flex; gap: 30px; align-items: center; margin-bottom: 30px; flex-wrap: wrap;">
                         <div style="flex: 1; min-width: 250px;">
                             <img src="${radarDataUrl}" alt="Radar Chart" style="width: 100%; max-width: 350px; display: block; margin: 0 auto;" />
@@ -1866,7 +2166,6 @@
                         </div>
                     </div>
 
-                    <!-- Confiance du modèle -->
                     <div style="margin-bottom: 30px; background: #f8f9fc; border-radius: 12px; padding: 20px;">
                         <h3 style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #8899ae; margin-bottom: 12px;">
                             Model Confidence Distribution
@@ -1882,7 +2181,6 @@
                         `).join('')}
                     </div>
 
-                    <!-- Recommandations -->
                     <div style="margin-bottom: 20px;">
                         <h3 style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #8899ae; margin-bottom: 12px;">
                             Personalized Recommendations
@@ -1899,7 +2197,6 @@
                         </div>
                     </div>
 
-                    <!-- Pied de page -->
                     <div style="text-align: center; border-top: 1px solid #e8ecf2; padding-top: 16px; margin-top: 20px;">
                         <p style="font-size: 9px; color: #8899ae; text-transform: uppercase; letter-spacing: 0.06em;">
                             AcaDNA — Academic Fingerprint · K-Means · XGBoost · SHAP · KNN
@@ -1924,7 +2221,6 @@
             btn.disabled = true;
 
             try {
-                // Créer un conteneur temporaire pour le rapport
                 const reportHTML = generateReportHTML();
                 if (!reportHTML) throw new Error('Failed to generate report');
 
@@ -1938,10 +2234,8 @@
                 container.style.zIndex = '-1';
                 document.body.appendChild(container);
 
-                // Attendre que le DOM soit prêt
                 await new Promise(resolve => setTimeout(resolve, 300));
 
-                // Capturer avec html2canvas
                 const canvas = await html2canvas(container, {
                     scale: 2,
                     backgroundColor: '#ffffff',
@@ -1954,12 +2248,10 @@
                     windowHeight: container.scrollHeight,
                 });
 
-                // Supprimer le conteneur temporaire
                 document.body.removeChild(container);
 
                 const imgData = canvas.toDataURL('image/png');
                 
-                // Créer le PDF
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 const pdfWidth = pdf.internal.pageSize.getWidth();
