@@ -169,6 +169,7 @@ input[type=range]{padding:8px 0;cursor:pointer;accent-color:var(--purple)}
   </div>
 
   
+
   <!-- FORM -->
   <div class="form-section" id="formSection">
     <div class="form-header">
@@ -357,19 +358,23 @@ function scoreProfile(){
   const oriente=q36/2;
 
   let scores=[0,0,0,0,0];
-  // C0 Solitaire nocturne: perf ok, masquage moyen, procra faible
-  scores[0]=perf*0.4+(1-masquage)*0.3+(1-procra)*0.3;
-  // C1 Façadier passionné: satisfaction haute, masquage haut
-  scores[1]=satisfaction*0.4+masquage*0.4+perf*0.2;
-  // C2 Organisé serein: perf haute, procra faible, satisfaction haute, peu masquage
-  scores[2]=perf*0.3+(1-procra)*0.3+satisfaction*0.3+(1-masquage)*0.1;
-  // C3 Procrastinateur: procra haute, oriente haut
-  scores[3]=procra*0.5+oriente*0.3+(1-perf)*0.2;
-  // C4 Masqué épuisé: masquage très haut, satisfaction faible
-  scores[4]=masquage*0.5+(1-satisfaction)*0.3+(1-perf)*0.2;
+  // C0 Solitaire nocturne: perf haute, masquage BAS, procra basse, satisfaction BASSE (travaille seul, pas besoin de validation sociale)
+  scores[0]=perf*0.35+(1-masquage)*0.35+(1-procra)*0.15+(1-satisfaction)*0.15;
+  // C1 Façadier passionné: satisfaction haute, masquage TRES haut (cache tout malgré la passion)
+  scores[1]=satisfaction*0.3+masquage*0.5+perf*0.1+(1-procra)*0.1;
+  // C2 Organisé serein: perf haute, procra TRES basse, satisfaction haute, masquage BAS aussi mais distinct de C0 par satisfaction
+  scores[2]=perf*0.25+(1-procra)*0.35+satisfaction*0.35+(1-masquage)*0.05;
+  // C3 Procrastinateur: procra TRES haute, oriente haut, perf basse
+  scores[3]=procra*0.55+oriente*0.25+(1-perf)*0.2;
+  // C4 Masqué épuisé: masquage TRES haut, satisfaction TRES basse, perf moyenne-basse
+  scores[4]=masquage*0.4+(1-satisfaction)*0.4+(1-perf)*0.2;
 
-  const total=scores.reduce((a,b)=>a+b,0);
-  const proba=scores.map(s=>s/total);
+  // Amplification softmax (température basse = écarts plus nets, comme un vrai modèle confiant)
+  const T=0.12;
+  const maxScore=Math.max(...scores);
+  const exp=scores.map(s=>Math.exp((s-maxScore)/T));
+  const sumExp=exp.reduce((a,b)=>a+b,0);
+  const proba=exp.map(e=>e/sumExp);
   const cluster=proba.indexOf(Math.max(...proba));
   const malOriente=(q36>=1||q11<=2)?1:0;
   return{cluster,proba,malOriente};
