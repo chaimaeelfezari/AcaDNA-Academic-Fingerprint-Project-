@@ -6,6 +6,7 @@ from sklearn.metrics import classification_report
 from sklearn.preprocessing import LabelEncoder
 import shap
 import matplotlib.pyplot as plt
+import joblib
 
 df = pd.read_csv('AcaDNA_clustered.csv')
 
@@ -55,3 +56,5 @@ for i in range(5):
     plt.savefig(f'shap_cluster_{i}.png', dpi=150, bbox_inches='tight')
     plt.close()
     print(f"Saved: shap_cluster_{i}.png")
+    joblib.dump(model, 'xgboost_model.pkl')
+    print("Saved: xgboost_model.pkl")
