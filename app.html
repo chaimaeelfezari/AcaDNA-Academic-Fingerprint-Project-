@@ -1436,7 +1436,8 @@
             <li role="none"><button role="menuitem" onclick="navigateTo('analyze')">Analyze</button></li>
             <li role="none"><button role="menuitem" onclick="navigateTo('results')" id="navResults" style="display:none;">Results</button></li>
             <li role="none"><button role="menuitem" onclick="navigateTo('about')">About</button></li>
-            <li role="none">
+            <li role="none"><button role="menuitem" onclick="navigateTo('myanalysis')">My Analysis</button></li>
+           <li role="none">
                 <button class="btn-chat-nav" onclick="openChatModal()" id="navChat" aria-label="Open academic coach chat">
                     💬 Coach
                     <span class="badge" aria-hidden="true">New</span>
@@ -1612,6 +1613,199 @@
                 </div>
             </div>
         </section>
+
+
+
+
+
+
+<!-- ═══ PAGE: MY ANALYSIS ═══ -->
+<section class="page" id="page-myanalysis" role="tabpanel" aria-label="My Analysis">
+  <div class="form-section">
+    <div class="form-header">
+      <h2>Academic Profile Analysis</h2>
+      <p>Answer these questions — your real trained models will analyse your profile and generate a personalised plan</p>
+    </div>
+
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>Academic performance (1–5)</label>
+        <div class="range-row">
+          <input type="range" min="1" max="5" value="3" id="mq1"
+            oninput="document.getElementById('mq1v').textContent=this.value"/>
+          <span class="range-val" id="mq1v">3</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Do you hide your stress from others?</label>
+        <select id="mq2">
+          <option value="Never / أبداً">Never</option>
+          <option value="Rarely / نادراً">Rarely</option>
+          <option value="Sometimes / أحياناً" selected>Sometimes</option>
+          <option value="Often / غالباً">Often</option>
+          <option value="Always / دائماً">Always</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Do you pretend to be fine in front of teachers?</label>
+        <select id="mq14">
+          <option value="No, I am always honest / لا، أنا صريح/صريحة دائماً">Never, I'm honest</option>
+          <option value="Rarely / نادراً">Rarely</option>
+          <option value="Sometimes / أحياناً" selected>Sometimes</option>
+          <option value="Often / غالباً">Often</option>
+          <option value="Always / دائماً">Always</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Do your grades hide your real exhaustion?</label>
+        <select id="mq15">
+          <option value="No, my grades reflect my state well / لا، درجاتي تعكس حالتي جيداً">No, they reflect it</option>
+          <option value="A little / قليلاً" selected>A little</option>
+          <option value="Quite often / غالباً">Quite often</option>
+          <option value="Yes, exactly / نعم، تماماً">Yes, exactly</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Do you avoid asking for help to not seem weak?</label>
+        <select id="mq16">
+          <option value="No, never / لا، أبداً">No, never</option>
+          <option value="Rarely / نادراً">Rarely</option>
+          <option value="Sometimes / أحياناً" selected>Sometimes</option>
+          <option value="Often / غالباً">Often</option>
+          <option value="Always / دائماً">Always</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Do you act differently from how you truly feel?</label>
+        <select id="mq17">
+          <option value="Never / أبداً">Never</option>
+          <option value="Rarely / نادراً">Rarely</option>
+          <option value="Sometimes / أحياناً" selected>Sometimes</option>
+          <option value="Often / غالباً">Often</option>
+          <option value="Always / دائماً">Always</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Do you smile or laugh to hide stress?</label>
+        <select id="mq18">
+          <option value="Never / أبداً">Never</option>
+          <option value="Rarely / نادراً">Rarely</option>
+          <option value="Sometimes / أحياناً" selected>Sometimes</option>
+          <option value="Often / غالباً">Often</option>
+          <option value="It is my usual behavior / إنه سلوكي المعتاد">It's my usual behavior</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>When overwhelmed, who really knows?</label>
+        <select id="mq20">
+          <option value="Family and close friends / العائلة والأصدقاء المقربين" selected>Family & close friends</option>
+          <option value="Only one friend / صديق/ة واحد/ة فقط">Only one friend</option>
+          <option value="No one, I manage alone / لا أحد، أتدبر أمري وحدي">No one, I manage alone</option>
+          <option value="I even hide it from myself / أخفي حتى عن نفسي">I hide it even from myself</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Have you felt no one would understand you?</label>
+        <select id="mq21">
+          <option value="No, never / لا، أبداً">No, never</option>
+          <option value="Rarely / نادراً">Rarely</option>
+          <option value="Sometimes / أحياناً" selected>Sometimes</option>
+          <option value="Often / غالباً">Often</option>
+          <option value="Yes, always / نعم، دائماً">Yes, always</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Does your real level differ from how you appear?</label>
+        <select id="mq22">
+          <option value="Never / أبداً">Never</option>
+          <option value="Rarely / نادراً">Rarely</option>
+          <option value="Sometimes / أحياناً" selected>Sometimes</option>
+          <option value="Often / غالباً">Often</option>
+          <option value="Always / دائماً">Always</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Do other students seem to struggle less than you?</label>
+        <select id="mq23">
+          <option value="No, everyone has challenges / لا، للجميع تحدياته" selected>No, everyone struggles</option>
+          <option value="Maybe a little / ربما قليلاً">Maybe a little</option>
+          <option value="Probably yes / على الأرجح نعم">Probably yes</option>
+          <option value="Yes, they all seem at ease / نعم، يبدو أنهم جميعاً مرتاحون">Yes, they all seem fine</option>
+          <option value="Yes, I am the only one suffering / نعم، أنا الوحيد الذي يعاني">Yes, only I suffer</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>After an exhausting day, how do you act in class?</label>
+        <select id="mq24">
+          <option value="I explain if asked / أشرح إذا سُئلت">I explain if asked</option>
+          <option value="I stay silent / أبقى صامتاً/صامتة">I stay silent</option>
+          <option value="I act like everything is fine / أتصرف وكأن كل شيء على ما يرام" selected>I act like everything's fine</option>
+          <option value='I am even more "performant" to compensate / أكون أكثر "أداءً" للتعويض'>I overperform to compensate</option>
+        </select>
+      </div>
+
+      <div class="form-group full">
+        <label>Your relationship with deadlines?</label>
+        <select id="mq28">
+          <option value="plan_advance">I plan well in advance</option>
+          <option value="pressure_motivates">Pressure motivates me</option>
+          <option value="last_moment" selected>I meet them but at the last moment</option>
+          <option value="sometimes_miss">I sometimes miss them</option>
+          <option value="often_ignore">I often ignore them</option>
+        </select>
+      </div>
+
+    </div>
+
+    <button class="btn-primary" onclick="runFullAnalysis()">Analyse my profile</button>
+
+    <!-- RESULTS AREA -->
+    <div id="myResults" style="display:none;margin-top:2rem;">
+
+      <!-- Mask result -->
+      <div class="archetype-card" id="maskCard" style="margin-bottom:1rem;">
+        <div class="archetype-name" id="myMaskTitle">—</div>
+        <p class="archetype-desc" id="myMaskDesc">—</p>
+        <div id="myMaskConf" style="margin-top:0.5rem;font-size:0.85rem;color:var(--text-secondary);"></div>
+      </div>
+
+      <!-- Procrastination result -->
+      <div class="archetype-card" style="margin-bottom:1rem;">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-tertiary);margin-bottom:0.5rem;">Procrastination Type</div>
+        <div class="archetype-name" id="myProcTitle">—</div>
+        <p class="archetype-desc" id="myProcDesc">—</p>
+      </div>
+
+      <!-- Success plan tips -->
+      <div class="archetype-card" style="margin-bottom:1rem;">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-tertiary);margin-bottom:1rem;">Your Personalised Success Plan</div>
+        <div class="reco-grid" id="myTips"></div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+
+
+
+
+
+
 
         <!-- ═══ PAGE: ABOUT ═══ -->
         <section class="page" id="page-about" role="tabpanel" aria-label="About">
@@ -2506,6 +2700,104 @@
             }
         });
     </script>
+
+
+
+
+
+
+
+
+<script>
+async function runFullAnalysis() {
+  const payload = {
+    q1:  parseInt(document.getElementById('mq1').value),
+    q2:  document.getElementById('mq2').value,
+    q14: document.getElementById('mq14').value,
+    q15: document.getElementById('mq15').value,
+    q16: document.getElementById('mq16').value,
+    q17: document.getElementById('mq17').value,
+    q18: document.getElementById('mq18').value,
+    q20: document.getElementById('mq20').value,
+    q21: document.getElementById('mq21').value,
+    q22: document.getElementById('mq22').value,
+    q23: document.getElementById('mq23').value,
+    q24: document.getElementById('mq24').value,
+    deadline: document.getElementById('mq28').value
+  };
+
+  const results   = document.getElementById('myResults');
+  const maskTitle = document.getElementById('myMaskTitle');
+  const maskDesc  = document.getElementById('myMaskDesc');
+  const maskConf  = document.getElementById('myMaskConf');
+  const procTitle = document.getElementById('myProcTitle');
+  const procDesc  = document.getElementById('myProcDesc');
+  const tipsBox   = document.getElementById('myTips');
+  const maskCard  = document.getElementById('maskCard');
+
+  maskTitle.textContent = "Analysing…";
+  results.style.display = "block";
+
+  const procLabels = {
+    "Disciplined": { label: "🗓️ Disciplined", desc: "You plan ahead and rarely procrastinate. Keep building on that consistency." },
+    "Optimizer":   { label: "⚡ Optimizer",   desc: "Pressure motivates you to perform. Try starting earlier to reduce last-minute stress." },
+    "Avoider":     { label: "⏳ Avoider",     desc: "You tend to delay until the last moment. Breaking tasks into small steps can help." },
+    "Overwhelmed": { label: "🌊 Overwhelmed", desc: "Deadlines often slip past you. Consider a simple daily planner to regain control." },
+    "Unknown":     { label: "—",              desc: "" }
+  };
+
+  try {
+    const res  = await fetch("http://127.0.0.1:5000/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    if (data.mask_level === "Mask") {
+      maskCard.style.borderColor = "#ef4444";
+      maskTitle.style.color = "#f87171";
+      maskTitle.textContent = "⚠️ You may be wearing an academic mask";
+      maskDesc.textContent  = "Our model detected signs that you present a different image at school than how you truly feel inside. You are not alone — this is more common than you think.";
+    } else {
+      maskCard.style.borderColor = "#22c55e";
+      maskTitle.style.color = "#4ade80";
+      maskTitle.textContent = "✅ No strong signs of academic masking";
+      maskDesc.textContent  = "You seem to express yourself authentically in your academic environment. Keep that openness — it's a real strength.";
+    }
+    maskConf.textContent = "Model confidence: " + (data.mask_confidence * 100).toFixed(0) + "%";
+
+    const proc = procLabels[data.procrastination_type] || procLabels["Unknown"];
+    procTitle.textContent = proc.label;
+    procDesc.textContent  = proc.desc;
+
+    const tips = data.tips || [];
+    tipsBox.innerHTML = tips.map((t, i) =>
+      `<div class="reco-card">
+        <div class="reco-number">Tip ${i+1}</div>
+        <div class="reco-text">${t}</div>
+      </div>`
+    ).join('');
+
+  } catch (err) {
+    maskCard.style.borderColor = "#f59e0b";
+    maskTitle.style.color = "#fbbf24";
+    maskTitle.textContent = "⚠️ Could not reach the backend";
+    maskDesc.textContent  = "Make sure backend.py is running: python backend.py";
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+
+
 
 </body>
 </html>
