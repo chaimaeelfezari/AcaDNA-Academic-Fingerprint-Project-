@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 import matplotlib.pyplot as plt
+import joblib
 
 df = pd.read_csv('AcaDNA_clustered.csv')
 
@@ -95,3 +96,6 @@ plt.close()
 # Save
 df.to_csv('AcaDNA_final.csv', index=False)
 print("\nSaved: AcaDNA_final.csv, knn_accuracy.png, orientation_par_cluster.png ✅")
+
+joblib.dump(knn_final, 'knn_model.pkl')
+joblib.dump(scaler, 'scaler_knn.pkl')

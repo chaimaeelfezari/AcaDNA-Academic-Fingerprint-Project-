@@ -1,167 +1,163 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import joblib
 import pandas as pd
 import numpy as np
-from flask import send_from_directory
+import joblib
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+
 app = Flask(__name__)
 CORS(app)
 
-# Load all models
-mask_model = joblib.load("models/mask_model.pkl")
-mask_encoders = joblib.load("models/mask_encoders.pkl")
-mask_feature_cols = joblib.load("models/mask_feature_cols.pkl")
-archetype_model = joblib.load("models/archetype_model.pkl")
-archetype_scaler = joblib.load("models/archetype_scaler.pkl")
-archetype_feature_cols = joblib.load("models/archetype_feature_cols.pkl")
+# ── LOAD MODELS + DATA ─────────────────────────────────────
+df = pd.read_csv('AcaDNA_with_scores.csv')
+model_procra = joblib.load('xgboost_procrastination.pkl')
+model_masq = joblib.load('xgboost_masquage.pkl')
+knn_model = joblib.load('knn_model.pkl')
 
-# Load data for success plan
-df_real = pd.read_csv("AcaDNA_clustered.csv")
-df_real = df_real[df_real["data_source"] == "real"].reset_index(drop=True)
-
-archetype_names = {
-    0: "The Passionate Pretender",
-    1: "The Pressure Procrastinator",
+ARCHETYPE_NAMES = {
+    0: "The Night Owl",
+    1: "The Passionate Pretender",
     2: "The Serene Organizer",
-    3: "The Exhausted Masker",
-    4: "The Night Owl"
+    3: "The Pressure Procrastinator",
+    4: "The Exhausted Masker"
 }
 
-proc_map = {
-    "plan_advance": "Disciplined",
-    "pressure_motivates": "Optimizer",
-    "last_moment": "Avoider",
-    "sometimes_miss": "Overwhelmed",
-    "often_ignore": "Overwhelmed"
+# ── PREPARE FEATURE REFERENCE (même pipeline que l'entraînement) ──
+drop_cols = ['Horodateur', 'cluster_kmeans', 'cluster_dbscan',
+             'pca1', 'pca2', 'data_source', 'score_masquage',
+             'score_procrastination', 'mal_oriente',
+             'best_match_cluster', 'match_score']
+drop_cols = [c for c in drop_cols if c in df.columns]
+q40_candidates = [c for c in df.columns if c.startswith('40.')]
+drop_cols += q40_candidates
+
+feature_cols = [c for c in df.columns if c not in drop_cols]
+X_ref = df[feature_cols].copy()
+
+# Mapping ordinal correct (au lieu de LabelEncoder alphabetique qui casse l'ordre)
+FREQ_MAP = {
+    'Never':0, 'Rarely':1, 'Sometimes':2, 'Often':3, 'Always':4
 }
 
-archetype_descriptions = {
-    0: "You appear outwardly fine but carry stress alone. You rarely ask for help and tend to hide how you truly feel.",
-    1: "You're present but uncertain about your path. You often work last-minute and have questioned your field choice.",
-    2: "You're well-matched to your field — calm, organized, and authentic. Keep that balance.",
-    3: "You're at high risk of burnout. You constantly hide your struggles and feel overwhelmed. You need support.",
-    4: "You perform well but stay quiet when exhausted. You're independent and introverted — that's a strength."
-}
+def ordinal_encode(series):
+    def map_val(x):
+        x = str(x)
+        for k, v in FREQ_MAP.items():
+            if k in x:
+                return v
+        return None
+    mapped = series.apply(map_val)
+    if mapped.notna().sum() > len(series) * 0.5:
+        return mapped.fillna(mapped.median())
+    return None
 
-match_score_descriptions = {
-    "strong": "Your answers align strongly with your archetype — you are well-placed.",
-    "moderate": "Your answers partially align with your archetype — some aspects may need attention.",
-    "weak": "Your answers weakly align with your archetype — you may benefit from guidance."
-}
+encoders = {}
+for col in X_ref.columns:
+    if X_ref[col].dtype == object:
+        ordinal = ordinal_encode(X_ref[col])
+        if ordinal is not None:
+            X_ref[col] = ordinal
+        else:
+            le = LabelEncoder()
+            X_ref[col] = le.fit_transform(X_ref[col].astype(str))
+            encoders[col] = le
+X_ref = X_ref.fillna(0)
 
-tips_per_archetype = {
-    0: [
-        "Try opening up to at least one trusted person about how you really feel.",
-        "Asking for help is a sign of strength, not weakness.",
-        "Your grades don't define your worth — it's okay to not be fine sometimes."
-    ],
-    1: [
-        "Reflect on what genuinely interests you — a small shift in direction now saves years later.",
-        "Start tasks earlier, even 10 minutes a day builds momentum.",
-        "Talk to a counselor or mentor about your field — you don't have to figure it out alone."
-    ],
-    2: [
-        "Keep organizing your time from week one — don't let work pile up.",
-        "Share your methods with peers — your approach can help others.",
-        "Set ambitious goals — you have the foundation to achieve them."
-    ],
-    3: [
-        "You are not alone — many students feel exactly like you do.",
-        "Start studying from the beginning, small steps every day.",
-        "Prepare before class and ask questions without shame — it gets easier."
-    ],
-    4: [
-        "Try building more social connections — they can be a real source of support.",
-        "Be yourself and don't overperform just to compensate on hard days.",
-        "Keep going and never give up — consistency matters more than perfection."
-    ]
-}
+scaler = StandardScaler()
+X_scaled_ref = scaler.fit_transform(X_ref)
 
-@app.route("/predict", methods=["POST"])
+col_names = X_ref.columns.tolist()
+median_vector = X_ref.median().values.copy()
+
+def find_col(keyword):
+    matches = [c for c in col_names if keyword in c]
+    return matches[0] if matches else None
+
+def archetype_from_scores(procra, masq, perf, satisfaction):
+    """Détermine l'archétype le plus probable à partir des scores réels du modèle"""
+    scores = np.zeros(5)
+    scores[0] = perf * 0.35 + (1 - masq) * 0.35 + (1 - procra) * 0.15 + (1 - satisfaction) * 0.15
+    scores[1] = satisfaction * 0.3 + masq * 0.5 + perf * 0.1 + (1 - procra) * 0.1
+    scores[2] = perf * 0.25 + (1 - procra) * 0.35 + satisfaction * 0.35 + (1 - masq) * 0.05
+    scores[3] = procra * 0.55 + (1 - perf) * 0.45
+    scores[4] = masq * 0.4 + (1 - satisfaction) * 0.4 + (1 - perf) * 0.2
+
+    T = 0.12
+    exp = np.exp((scores - scores.max()) / T)
+    proba = exp / exp.sum()
+    return int(np.argmax(proba)), proba.tolist()
+
+# ── ROUTES ─────────────────────────────────────────────────
+@app.route('/predict', methods=['POST'])
 def predict():
     data = request.json
 
-    # ── Mask prediction ──────────────────────────────
-    mask_row = {}
-    for i, col in enumerate(mask_feature_cols):
-        key = f"q{[1,2,14,15,16,17,18,20,21,22,23,24][i]}"
-        val = data.get(key)
-        if col in mask_encoders:
-            le = mask_encoders[col]
-            val = le.transform([val])[0] if val in le.classes_ else 0
-        mask_row[col] = val
+    user_vec = median_vector.copy()
 
-    X_mask = pd.DataFrame([mask_row])[mask_feature_cols]
-    mask_pred = mask_model.predict(X_mask)[0]
-    mask_conf = float(mask_model.predict_proba(X_mask)[0].max())
+    def set_val(keyword, value):
+        col = find_col(keyword)
+        if col:
+            idx = col_names.index(col)
+            user_vec[idx] = value
 
-    # ── Archetype prediction ─────────────────────────
-    arch_row = {}
-    for col in archetype_feature_cols:
-        arch_row[col] = data.get("arch_" + col, 0)
+    set_val('1. How do you perceive', data.get('q1', 3))
+    set_val('11. How satisfied', data.get('q11', 3))
 
-    X_arch = pd.DataFrame([arch_row])[archetype_feature_cols]
-    X_arch_scaled = archetype_scaler.transform(X_arch)
-    archetype_id = int(archetype_model.predict(X_arch_scaled)[0])
+    # Masquage : propager la même intensité a toutes les colonnes liees
+    masq_val = data.get('q2', 2)
+    for kw in ['2. Do you tend to hide', '14. Do you pretend', '15. Do you feel that your good grades',
+               '16. Do you avoid asking', '17. How often do you act', '18. Do you smile',
+               '19. Do you feel like you are playing', '21. Have you ever felt', '22. How often do you feel that your real level']:
+        set_val(kw, masq_val)
 
-    # ── Match score ──────────────────────────────────
-    from sklearn.metrics.pairwise import cosine_similarity
-    from sklearn.preprocessing import LabelEncoder, StandardScaler
+    # Procrastination : propager a toutes les colonnes liees
+    procra_val = data.get('q27', 2)
+    set_val('25. When you make a study plan', 4 - procra_val)  # inverse: suivre le plan = oppose de procrastiner
+    set_val('27. Do you delay', procra_val)
+    set_val('28. How do you describe your relationship with deadlines', data.get('q28', 2))
+    set_val('29. How often do you use', procra_val)
+    set_val('30. Does fear of doing badly', procra_val)
 
-    cluster_profiles = []
-    X_ref = df_real.drop(columns=[c for c in df_real.columns
-                                   if c in ["Horodateur","data_source",
-                                            df_real.columns[40],
-                                            "cluster_kmeans","cluster_dbscan",
-                                            "pca1","pca2"]], errors="ignore")
-    for col in X_ref.columns:
-        if not pd.api.types.is_numeric_dtype(X_ref[col]):
-            X_ref[col] = LabelEncoder().fit_transform(X_ref[col].astype(str))
-    X_ref = X_ref.fillna(0)
-    sc = StandardScaler()
-    X_ref_scaled = sc.fit_transform(X_ref)
+    set_val('36. Have you ever seriously considered', data.get('q36', 0))
 
-    for i in range(5):
-        mask_cl = df_real["cluster_kmeans"] == i
-        cluster_profiles.append(X_ref_scaled[mask_cl].mean(axis=0))
-    cluster_profiles = np.array(cluster_profiles)
+    user_df = pd.DataFrame([user_vec], columns=col_names)
 
-    student_vec = X_ref_scaled[0:1] * 0  # placeholder zeros
-    match_score = float(cosine_similarity(
-        cluster_profiles[archetype_id].reshape(1,-1),
-        cluster_profiles[archetype_id].reshape(1,-1)
-    )[0][0])
+    # ── VRAIES PREDICTIONS XGBOOST (regression) ─────────────
+    procra_score = float(model_procra.predict(user_df)[0])  # 0 a 4
+    masq_score = float(model_masq.predict(user_df)[0])      # 0 a 4
 
-    if match_score >= 0.35:
-        match_label = "strong"
-    elif match_score >= 0.21:
-        match_label = "moderate"
-    else:
-        match_label = "weak"
+    # Normaliser 0-4 vers 0-1 pour le radar
+    procra_norm = np.clip(procra_score / 4, 0, 1)
+    masq_norm = np.clip(masq_score / 4, 0, 1)
+    perf_norm = data.get('q1', 3) / 5
+    satisfaction_norm = data.get('q11', 3) / 5
 
-    # ── Procrastination ──────────────────────────────
-    proc_type = proc_map.get(data.get("deadline"), "Unknown")
+    # ── ARCHETYPE DERIVE DES VRAIS SCORES ML ────────────────
+    cluster_pred, proba = archetype_from_scores(procra_norm, masq_norm, perf_norm, satisfaction_norm)
 
-    # ── Success plan tips ────────────────────────────
-    tips = tips_per_archetype.get(archetype_id, [])
+    # ── PREDICTION KNN (orientation) ────────────────────────
+    user_scaled = scaler.transform(user_df)
+    orientation_pred = int(knn_model.predict(user_scaled)[0])
 
     return jsonify({
-        "mask_level": mask_pred,
-        "mask_confidence": round(mask_conf, 2),
-        "archetype_id": archetype_id,
-        "archetype_name": archetype_names[archetype_id],
-        "archetype_description": archetype_descriptions[archetype_id],
-        "procrastination_type": proc_type,
-        "match_label": match_label,
-        "match_description": match_score_descriptions[match_label],
-        "tips": tips
+        'cluster': cluster_pred,
+        'archetype_name': ARCHETYPE_NAMES[cluster_pred],
+        'probabilities': proba,
+        'mal_oriente': orientation_pred,
+        'procrastination_score': procra_score,
+        'masquage_score': masq_score,
+        'dimensions': {
+            'performance': perf_norm,
+            'masking': masq_norm,
+            'procrastination': procra_norm,
+            'satisfaction': satisfaction_norm
+        }
     })
-@app.route("/")
-def serve_app():
-    return send_from_directory(".", "app.html")
 
-@app.route("/<path:filename>")
-def serve_file(filename):
-    return send_from_directory(".", filename)
-if __name__ == "__main__":
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({'status': 'ok', 'models_loaded': True})
+
+if __name__ == '__main__':
+    print("Backend AcaDNA démarré sur http://localhost:5000")
     app.run(debug=True, port=5000)
